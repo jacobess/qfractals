@@ -41,10 +41,6 @@ public:
 
 	void setSize(int width, int height, int aaDeg);
 
-	// Sets min/max-Values according to data array
-	// 0 if no such type
-	void init();
-
 	void clear();
 	void refreshImage();
 

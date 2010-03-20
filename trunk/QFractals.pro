@@ -13,14 +13,15 @@ SOURCES += main.cpp \
     ui/selectablewidget.cpp \
     settings.cpp \
     ui/mainwindow.cpp \
-    math/complex.cpp \
     graphics/image.cpp \
     fractals/specification.cpp \
     fractals/viewport.cpp \
     fractals/rendering.cpp \
     fractals/mandelbrot.cpp \
     ui/imagecontrolwidget.cpp \
-    ui/resizedialog.cpp
+    ui/resizedialog.cpp \
+    fractals/pendulum.cpp \
+    math/interpreter.cpp
 HEADERS += graphics/colorpalette.h \
     math/transformation.h \
     math/spline.h \
@@ -31,12 +32,17 @@ HEADERS += graphics/colorpalette.h \
     ui/selectablewidget.h \
     settings.h \
     ui/mainwindow.h \
-    math/complex.h \
     fractals/specification.h \
     fractals/viewport.h \
     fractals/rendering.h \
     fractals/mandelbrot.h \
     ui/imagecontrolwidget.h \
-    ui/resizedialog.h
-FORMS +=
+    ui/resizedialog.h \
+    fractals/pendulum.h \
+    math/interpreter.h
+FORMS += 
 CONFIG += debug
+LIBS += -L/opt/local/lib/ \
+    -lgmpxx \
+    -lgmp
+INCLUDEPATH += /opt/local/include/

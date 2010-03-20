@@ -87,16 +87,8 @@ void Generator::startUnlock() {
 		qDebug("Sending starting signal");
 		emit started();
 
-		// Let subclasses do their job
-		init();
-
-		qDebug("Starting threads...");
-
-		foreach(Thread* t, threads_) {
-			t->start();
-		}
-
-		updateTimer_.start(updateInterval_);
+		qDebug("Starting thread 0...");
+		threads_[0]->start();
 	} else {
 		isStopped_ = false;
 	}
@@ -118,7 +110,7 @@ void Generator::cancelWait() {
 }
 
 void Generator::lockCancelWait() {
-	qDebug("lockCancelWait");
+	//qDebug("lockCancelWait");
 	mutex_.lock();
 
 	if(isRunning()) {
@@ -133,13 +125,29 @@ void Generator::lockCancelWait() {
 		qDebug("Threads stopped");
 	}
 
-	qDebug("end lockCancelWait");
+	//qDebug("end lockCancelWait");
 }
 
 void Generator::run(int i) {
-	qDebug("Running thread %d", i);
+	if(i == 0) {
+		qDebug("Zero-Thread starting other threads");
+		// Zero-Thread initializes image and starts other threads
+		init();
 
-	exec(i, threads_.size());
+		emitUpdate();
+
+		updateTimer_.start(updateInterval_);
+
+		for(int i = 1; i < threads_.size(); i++) {
+			threads_[i]->start();
+		}
+	}
+
+	if(!isStopped()) {
+		exec(i, threads_.size());
+	} else {
+		qDebug("Do not execute thread %d since already stopped", i);
+	}
 
 	QMutexLocker locker(&threadMutex_);
 
@@ -147,6 +155,8 @@ void Generator::run(int i) {
 
 	if(runningCount_ == 0)
 	{
+		qDebug("Last thread running, stopping services");
+
 		// Stop timer
 		updateTimer_.stop();
 
@@ -154,14 +164,11 @@ void Generator::run(int i) {
 			emitUpdate();
 		}
 
-		qDebug("Sending done signal");
-
 		emit done(isStopped_);
 
 		// So that new cancel-messages can be obtained
 		isStopped_ = false;
 	}
-	qDebug("end Running thread %d", i);
 }
 
 bool Generator::isStopped() const {

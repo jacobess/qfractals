@@ -38,9 +38,6 @@ const QImage& RenderedImage::image() const {
 	return img_.image();
 }
 
-void RenderedImage::init() {
-	refreshImage();
-}
 
 void RenderedImage::clear() {
 	img_.clear();

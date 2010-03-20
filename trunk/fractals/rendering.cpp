@@ -48,8 +48,6 @@ const RenderedImage& RenderingGenerator<T>::img() const {
 template<class T>
 void RenderingGenerator<T>::init() {
 	pixCount_ = 0;
-
-	renderImg_.init();
 }
 
 template<class T>
