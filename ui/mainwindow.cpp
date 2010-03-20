@@ -31,8 +31,8 @@ MainWindow::MainWindow(QWidget *parent) :
 	palette.g().setPeriod(100);
 	palette.b().setPeriod(96);
 
-	generator_ = Mandelbrot<long double>(
-			Transformation<long double>(4, 0, 0, 4, -2, -2),
+	generator_ = Mandelbrot<double>(
+			Transformation<double>(4, 0, 0, 4, -2, -2),
 			palette).createGenerator(640, 480);
 
 	initMenu();

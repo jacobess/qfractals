@@ -1,6 +1,7 @@
-#ifndef TransformationATION_H
-#define TransformationATION_H
+#ifndef TRANSFORMATION_H
+#define TRANSFORMATION_H
 
+#include <gmpxx.h>
 #include "sys/types.h"
 
 template <class T>
@@ -21,4 +22,4 @@ public:
 	T fromY(const T& y, const T& y) const;
 };
 
-#endif // TransformationATION_H
+#endif // TRANSFORMATION_H

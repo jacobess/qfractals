@@ -28,7 +28,14 @@ public:
 
 template<class T>
 class MandelbrotEnv : public RenderingEnv<T> {
+
 	const Mandelbrot<T>& spec_;
+
+	// Orbit
+	T* xs_;
+	T* ys_;
+	int n_;
+
 public:
 	MandelbrotEnv(const Mandelbrot<T>& spec);
 	virtual ~MandelbrotEnv();
