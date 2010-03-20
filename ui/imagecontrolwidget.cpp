@@ -6,7 +6,7 @@
 #define ABS(x)	((x) >= 0 ? (x) : -(x))
 
 ImageControlWidget::ImageControlWidget(QWidget* parent, Generator* generator) :
-		QWidget(parent)
+		QWidget(parent), generator_(0)
 {
 	initGUI();
 	setGenerator(generator);
