@@ -1,10 +1,7 @@
 #include "mandelbrot.h"
 #include "math.h"
 
-//#include "math/interpreter.h"
-
-#define SQR 0x8
-#define ADD_C 0x9
+#include "math/interpreter.h"
 
 template<class T>
 Mandelbrot<T>::Mandelbrot(const Transformation<T>& t, const ColorPalette& palette) :
@@ -74,81 +71,26 @@ void MandelbrotEnv<T>::calc(const T& x, const T& y, uchar& type, float& value) {
 	unsigned int ops[16];
 
 	int count = 2;
-	ops[0] = SQR << 26;
-	ops[1] = ADD_C << 26;
+	ops[0] = OP_SQR << 26;
+	ops[1] = OP_ADD_C << 26;
 
 	T regs[0x10 * 2];
 
 	T nr, ni;
-	T src2r, src2i, t;
 
 	nr = zr;
 	ni = zi;
 
 	for(int i = 1; i < 10240; i++) {
 
-		for(int j = 0; j < count; j++) {
-			unsigned int op = ops[j];
+		// For the sake of speed avoid pointer resolving and function calls
+		// in here. Therefore here using a macro
 
-			// Instruction Format
-			// instruction [31...26] destination [25..18] source2/i [17..9] source [8..0]
+		INTERPRET(count, ops, nr, ni, cr, ci, zr, zi, i, xs_, ys_, regs);
 
-			// Instructions are:
-			// binary: + - * / ^ {if it is a binary function, source2 is also a source}
-			// unary: sqr, lambda, sqrt, sin cos tan atan exp log conj 1/ *z *c +z +c, rect, polar
-			// unary with number i encoded: ^int
-			// const with number i encoded: z[n-i] cp[i] {i > 0}
-			// const: z, pixel, c {in julia sets constant, in mandelbrot = pixel}
-
-			// Sources are:
-			// bit 8 = 1: Numbers {[7..4] + i * [3..0]}
-			// else Registers: 0 = no register, use nr/ni
-
-			// Instruction: [5..0]:
-			// if < 8 [bits 5..3 unset]: src2 = source
-
-			if(op & 0x1ff) { // if it is 0 we keep nr/ni
-				// Macro to set nr/ni according to 0x1ff
-
-				// SOURCE(nr, ni, op & 0x1ff, regs)
-
-				unsigned int src1 = op & 0x1ff;
-				if(src1) {
-					// It's a number
-					// Consider sign!
-					nr = 0;
-					ni = 0;
-				} else {
-					// It's a register (src1 in [1..255])
-					//nr = regs[src1 - 1];
-					//ni = regs[src1];
-				}
-			}
-
-			if(op < (8 << 26)) {
-				// SOURCE(src2r, src2i, op & 0x1ff, regs)
-			}
-
-			switch(op >> 26) {
-			case SQR:
-				t = nr * nr - ni * ni;
-				ni = 2 * nr * ni;
-				nr = t; break;
-			case ADD_C:
-				nr += cr;
-				ni += ci;
-				break;
-			}
-
-			if(op & (0xff << 18)) {
-				unsigned int dest = (op << 18) & 0xff;
-
-				regs[dest - 1] = nr;
-				regs[dest] = ni;
-			}
-		}
-
-		//INTERPRET(count, ops, nr, ni, src2r, src2i, cr, ci, zr, zi, xs_, ys_, i, regs, t)
+		//T t = nr * nr - ni * ni + cr;
+		//ni = 2 * nr * ni + ci;
+		//nr = t;
 
 		(*xn) = nr;
 		(*yn) = ni;
@@ -163,6 +105,7 @@ void MandelbrotEnv<T>::calc(const T& x, const T& y, uchar& type, float& value) {
 			type = 1;
 
 			// Smoothness
+			// TODO Replace 2 by power
 			value = i + 1 + 1 / log(2) * log(log(256) / log(radSqr));
 			n_ = i + 1;
 
