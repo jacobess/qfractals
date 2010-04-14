@@ -17,22 +17,34 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	palette.r().add(26, 1);
 	palette.g().add(25, 0.6);
-	palette.b().add(24, 0.2);
+	palette.b().add(24, 0.25);
 
 	palette.r().add(52, 1);
 	palette.g().add(50, 1);
 	palette.b().add(48, 1);
 
-	palette.r().add(78, 0.3);
-	palette.g().add(75, 0.3);
-	palette.b().add(72, 1);
+	palette.r().add(78, 0.2);
+	palette.g().add(75, 0.2);
+	palette.b().add(72, 0.8);
 
 	palette.r().setPeriod(104);
 	palette.g().setPeriod(100);
 	palette.b().setPeriod(96);
 
+	QList< Interpreter<long double> > base;
+
+	Interpreter<long double> iteration;
+
+	iteration.addRROp(QString("sqr"), -1, -1);
+	iteration.addRROp(QString("add_c"), -1, -1);
+
 	generator_ = Mandelbrot<long double>(
 			Transformation<long double>(4, 0, 0, 4, -2, -2),
+			base,
+			iteration,
+			10240,
+			2,
+			1e-6,
 			palette).createGenerator(640, 480);
 
 	initMenu();

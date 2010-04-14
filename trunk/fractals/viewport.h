@@ -20,7 +20,7 @@ public:
 template<class T>
 class ViewportGenerator : public Generator {
 public:
-	ViewportGenerator(int threadCount, int updateInterval, bool needsImageRefresh);
+	ViewportGenerator(int threadCount);
 	virtual ~ViewportGenerator();
 
 	void scale(int cx, int cy, qreal factor);

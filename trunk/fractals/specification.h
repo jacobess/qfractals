@@ -34,18 +34,13 @@ class Generator : public QObject {
 
 	bool isSelectable_;
 
-	int updateInterval_;
-
-	bool needsImageRefresh_;
-	QTimer updateTimer_;
-
 	QList<Thread*> threads_;
 
 	QMutex mutex_;
 	QMutex threadMutex_;
 
 public:
-	Generator(int threadCount, int updateInterval, bool needsImageRefresh, bool isSelectable);
+	Generator(int threadCount, bool isSelectable);
 	~Generator();
 
 	virtual const Specification& specification() const = 0;
@@ -78,17 +73,20 @@ public:
 
 	virtual QString pointDescription(qreal x, qreal y) = 0;
 
+	// TODO more detailed point description
+
 signals:
 	void started();
 	void done(bool cancelled);
 
-	void updated(int progress, int totalSteps);
 	void resized(int width, int height);
 
 public slots:
 	void start();
 	void cancel();
 	void cancelWait();
+
+	void refresh();
 
 protected:
 	virtual Image& img() = 0;
@@ -111,11 +109,6 @@ protected:
 
 	/** Method called by the index-th thread */
 	virtual void exec(int index, int count) = 0;
-
-protected slots:
-	/** Sends the update(int progress, int totalSteps)-message */
-	void emitUpdate();
-
 
 private:
 	void run(int i);
