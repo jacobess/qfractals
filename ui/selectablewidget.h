@@ -24,7 +24,7 @@ class SelectableWidget: public QWidget {
 	int selectedPointIndex_;
 
 public:
-	SelectableWidget(QWidget *parent, Generator* generator = 0);
+	SelectableWidget(QWidget *parent, Generator* generator);
 
 	void wheelEvent(QWheelEvent *event);
 
@@ -38,8 +38,6 @@ public:
 
 	void paintEvent(QPaintEvent *event);
 
-	void setGenerator(Generator* generator);
-
 signals:
 	void status(QString message);
 
@@ -47,9 +45,9 @@ private:
 	int findSelectablePoint(QPoint pos) const;
 	void moveSelectedPoint(bool keepRatio, bool keepCentered);
 
+	// Translate Coordinates
 	QPointF toImg(QPointF p) const;
 	QPointF fromImg(QPointF p) const;
-
 };
 
 #endif // SELECTABLEWIDGET_H

@@ -6,14 +6,13 @@
 #define ABS(x)	((x) >= 0 ? (x) : -(x))
 
 ImageControlWidget::ImageControlWidget(QWidget* parent, Generator* generator) :
-		QWidget(parent), generator_(0)
+		QWidget(parent), generator_(generator)
 {
 	initGUI();
-	setGenerator(generator);
 }
 
 void ImageControlWidget::initGUI() {
-	selectableWidget_ = new SelectableWidget(this);
+	selectableWidget_ = new SelectableWidget(this, generator_);
 
 	scrollArea_ = new QScrollArea(this);
 	scrollArea_->setAlignment(Qt::AlignCenter);
@@ -47,6 +46,10 @@ void ImageControlWidget::initGUI() {
 	scaleSlider_->setRange(-Settings::settings()->scaleSliderTicks(),
 			       Settings::settings()->scaleSliderTicks());
 	scaleSlider_->setValue(0);
+	scaleSlider_->setEnabled(false);
+
+	autoScaleCheckBox_ = new QCheckBox("Auto", this);
+	autoScaleCheckBox_->setChecked(true);
 
 	hLayout_ = new QHBoxLayout;
 
@@ -55,6 +58,7 @@ void ImageControlWidget::initGUI() {
 	hLayout_->addWidget(editButton_);
 	hLayout_->addSpacing(12);
 	hLayout_->addWidget(scaleSlider_);
+	hLayout_->addWidget(autoScaleCheckBox_);
 	hLayout_->addSpacing(12);
 	hLayout_->addWidget(statusLabel_);
 	hLayout_->addSpacing(12);
@@ -77,30 +81,17 @@ void ImageControlWidget::initGUI() {
 	connect(scaleSlider_, SIGNAL(valueChanged(int)), this, SLOT(changeScale(int)));
 	connect(selectableWidget_, SIGNAL(status(QString)), this, SLOT(setStatus(QString)));
 	connect(saveButton_, SIGNAL(clicked()), this, SLOT(saveImage()));
-}
+	connect(autoScaleCheckBox_, SIGNAL(toggled(bool)), this, SLOT(setAutoScale(bool)));
 
-void ImageControlWidget::setGenerator(Generator* generator) {
-	// Disconnect old one from cancel button and this
-	Generator* oldGen = generator_;
-	generator_ = generator;
+	// Connect the generator
+	// First receive done-signal
+	connect(generator_, SIGNAL(done(bool)), this, SLOT(setDone(bool)), Qt::DirectConnection);
+	connect(generator_, SIGNAL(started()), this, SLOT(setStarted()), Qt::DirectConnection);
 
-	if(oldGen != 0) {
-		disconnect(oldGen, 0, this, 0);
-		disconnect(cancelButton_, 0, oldGen, 0);
-	}
+	connect(&updateTimer_, SIGNAL(timeout()), selectableWidget_, SLOT(repaint()));
+	connect(&updateTimer_, SIGNAL(timeout()), this, SLOT(updateProgress()));
 
-	selectableWidget_->setGenerator(generator);
-
-	if(generator != 0) {
-		// First receive done-signal
-		connect(generator_, SIGNAL(done(bool)), this, SLOT(setDone(bool)), Qt::DirectConnection);
-		connect(generator_, SIGNAL(started()), this, SLOT(setStarted()), Qt::DirectConnection);
-		connect(generator_, SIGNAL(updated(int, int)), this, SLOT(updateProgress(int,int)));
-
-		connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(cancel()));
-	} else {
-		// TODO: Deactivate everything
-	}
+	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(cancel()));
 }
 
 void ImageControlWidget::changeScale(int i) {
@@ -140,7 +131,7 @@ void ImageControlWidget::changeScale(int i) {
 
 	qreal scale;
 
-	if(d <= ticks / 32) {
+	if(d <= ticks / 16) {
 		if(j == 'M') {
 			scale = 1;
 
@@ -175,17 +166,57 @@ void ImageControlWidget::changeScale(int i) {
 	scaleSlider_->setToolTip(tr("%1 %").arg(scale * 100, 0, 'f', 2));
 }
 
+void ImageControlWidget::setAutoScale(bool autoScale) {
+	if(autoScale) {
+		scaleSlider_->setEnabled(false);
+		updateSize();
+	} else {
+		scaleSlider_->setEnabled(true);
+		changeScale(scaleSlider_->value());
+	}
+}
+
+void ImageControlWidget::resizeEvent(QResizeEvent* /*event*/) {
+	if(autoScaleCheckBox_->isChecked()) {
+		updateSize();
+	}
+}
+
+void ImageControlWidget::updateSize() {
+	int wp = scrollArea_->maximumViewportSize().width();
+	int hp = scrollArea_->maximumViewportSize().height();
+
+	int w = generator_->width();
+	int h = generator_->height();
+
+	if(wp * h > w * hp) {
+		wp = w * hp / h;
+	} else if(wp * h < w * hp) {
+		hp = h * wp / w;
+	}
+
+	selectableWidget_->resize(wp , hp);
+}
+
+
 void ImageControlWidget::setStarted() {
-	qDebug("Receiving started");
+	//qDebug("Receiving started");
 
 	cancelButton_->setText("Cancel");
 	disconnect(cancelButton_, 0, generator_, 0);
 	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(cancel()));
 
+	// TODO Replace by Setting::
+	// TODO Start refresh timer
+	updateTimer_.start(Settings::settings()->updateInterval());
+
 	progressBar_->setEnabled(generator_->isRunning());
 }
 
-void ImageControlWidget::updateProgress(int progress, int totalSteps) {
+void ImageControlWidget::updateProgress() {
+	int totalSteps = generator_->totalSteps();
+	int progress = generator_->progress();
+
 	if(progressBar_->maximum() != totalSteps) {
 		progressBar_->setMaximum(totalSteps);
 	}
@@ -194,11 +225,14 @@ void ImageControlWidget::updateProgress(int progress, int totalSteps) {
 }
 
 void ImageControlWidget::setDone(bool) {
-	qDebug("Received done-signal");
+	//qDebug("Received done-signal");
 
 	cancelButton_->setText("Resume");
 	disconnect(cancelButton_, 0, generator_, 0);
 	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(start()));
+
+	updateTimer_.stop();
+	// TODO If not cancelled
 
 	progressBar_->setEnabled(false);
 }
@@ -215,7 +249,11 @@ void ImageControlWidget::showResizeDialog() {
 		generator_->setSize(dialog.width(), dialog.height());
 
 		// update size
-		changeScale(scaleSlider_->value());
+		if(autoScaleCheckBox_->isChecked()) {
+			updateSize();
+		} else {
+			changeScale(scaleSlider_->value());
+		}
 	}
 }
 
@@ -239,7 +277,7 @@ void ImageControlWidget::saveImage() {
 		if(!fileName.isEmpty()) {
 			// TODO: Does not work!
 			if(!generator_->image().save(fileName, "PNG")) {
-				qDebug("Could not save file");
+				//qDebug("Could not save file");
 				// Provide error message
 				QMessageBox msgBox;
 				msgBox.setText("Error saving image.");

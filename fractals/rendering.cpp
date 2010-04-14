@@ -10,9 +10,7 @@ Rendering<T>::~Rendering() {}
 
 template<class T>
 RenderingGenerator<T>::RenderingGenerator(int width, int height, int aa, const ColorProvider* cp) :
-		ViewportGenerator<T>(Settings::settings()->threadCount(),
-				     Settings::settings()->updateInterval(),
-				     false),
+		ViewportGenerator<T>(Settings::settings()->threadCount()),
 		renderImg_(width, height, aa, cp) {}
 
 template<class T>

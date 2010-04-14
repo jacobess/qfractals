@@ -22,21 +22,30 @@ class ImageControlWidget : public QWidget
 	QToolButton* editButton_;
 	QLabel* statusLabel_;
 	QSlider* scaleSlider_;
+	QCheckBox* autoScaleCheckBox_;
 	QProgressBar* progressBar_;
 	QToolButton* cancelButton_;
 
 	QHBoxLayout* hLayout_;
 	QVBoxLayout* vLayout_;
+
+	QTimer updateTimer_;
+	QTimer refreshTimer_;
+
 public:
 	ImageControlWidget(QWidget* parent, Generator* generator = 0);
 
 	void setGenerator(Generator* generator);
 
 private slots:
+	void setAutoScale(bool autoScale);
+	void resizeEvent(QResizeEvent* event);
+	void updateSize();
+
 	void changeScale(int i);
 
 	void setStarted();
-	void updateProgress(int, int);
+	void updateProgress();
 	void setDone(bool cancelled);
 	void setStatus(QString message);
 	void showResizeDialog();

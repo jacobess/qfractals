@@ -20,8 +20,8 @@ Transformation<T>& Viewport<T>::transformation() {
 }
 
 template<class T>
-ViewportGenerator<T>::ViewportGenerator(int threadCount, int updateInterval, bool needsImageRefresh) :
-		Generator(threadCount, updateInterval, needsImageRefresh, true) {}
+ViewportGenerator<T>::ViewportGenerator(int threadCount) :
+		Generator(threadCount, true) {}
 
 template<class T>
 ViewportGenerator<T>::~ViewportGenerator() {}

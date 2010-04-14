@@ -4,6 +4,8 @@
 #include "rendering.h"
 #include "graphics/colorpalette.h"
 
+#include "math/interpreter.h"
+
 template<class T>
 class MandelbrotGenerator;
 
@@ -13,9 +15,23 @@ class MandelbrotEnv;
 template<class T>
 class Mandelbrot : public Rendering<T>, public ColorProvider
 {
-	ColorPalette palette_;
+	QList< Interpreter<T> > base_;
+	Interpreter<T> iteration_;
+
+	int maxIterations_;
+
+	T bailout_;
+	T epsilon_;
+
+	ColorPalette bailoutPalette_;
 public:
-	Mandelbrot(const Transformation<T>& t, const ColorPalette& palette);
+	Mandelbrot(const Transformation<T>& t,
+		   const QList< Interpreter<T> >& base,
+		   const Interpreter<T>& iteration,
+		   int maxIterations,
+		   const T& bailout,
+		   const T& epsilon,
+		   const ColorPalette& bailoutPalette);
 	virtual ~Mandelbrot();
 
 	void color(uchar type, float val,
@@ -24,16 +40,34 @@ public:
 	RenderingGenerator<T>* createGenerator(int width, int height) const;
 
 	RenderingEnv<T>* createEnv() const;
+
+	const QList< Interpreter<T> >& base() const;
+	QList< Interpreter<T> >& base();
+
+	const Interpreter<T>& iteration() const;
+	Interpreter<T>& iteration();
+
+	int maxIterations() const;
+	int& maxIterations();
+
+	const T& epsilon() const;
+	T& epsilon();
+
+	const T& bailout() const;
+	T& bailout();
+
+	const ColorPalette& bailoutPalette() const;
+	ColorPalette& bailoutPalette();
 };
 
 template<class T>
 class MandelbrotEnv : public RenderingEnv<T> {
-
 	const Mandelbrot<T>& spec_;
 
 	// Orbit
 	T* xs_;
 	T* ys_;
+
 	int n_;
 
 public:

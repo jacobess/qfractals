@@ -8,30 +8,12 @@
 
 SelectableWidget::SelectableWidget(QWidget *parent, Generator *generator) :
 		QWidget(parent),
-		generator_(0),
+		generator_(generator),
 		hasSelection_(UNSELECTED) {
-	setGenerator(generator);
-
 	setFocusPolicy(Qt::ClickFocus);
 	setMouseTracking(true);
 
-	repaint();
-}
-
-void SelectableWidget::setGenerator(Generator* generator) {
-	if(generator_ != 0) {
-		// Disconnect everything
-		disconnect(generator_, 0, this, 0);
-	}
-
-	generator_ = generator;
-
-	if(generator_ != 0) {
-		connect(generator_, SIGNAL(updated(int, int)), this, SLOT(repaint()));
-		connect(generator_, SIGNAL(done(bool)), this, SLOT(repaint()));
-
-		this->resize(generator_->width(), generator_->height());
-	}
+	this->resize(generator_->width(), generator_->height());
 
 	repaint();
 }
@@ -49,6 +31,7 @@ QPointF SelectableWidget::fromImg(QPointF p) const {
 
 	return QPointF(x, y);
 }
+
 
 void SelectableWidget::paintEvent(QPaintEvent* /* event */) {
 	if(generator_) {
@@ -128,7 +111,9 @@ void SelectableWidget::wheelEvent(QWheelEvent *event) {
 
 		generator_->scale(p.x(), p.y(), zoomFactor);
 
-		repaint();
+		//repaint();
+
+		this->repaint();
 	} else {
 		QWidget::wheelEvent(event);
 	}
