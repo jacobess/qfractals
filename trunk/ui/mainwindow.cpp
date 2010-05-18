@@ -8,79 +8,37 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 	setWindowTitle(tr("QFractals"));
 
-	ColorPalette palette;
-	palette.a().add(0, 1);
-
-	palette.r().add(0, 0);
-	palette.g().add(0, 0);
-	palette.b().add(0, 0);
-
-	palette.r().add(26, 1);
-	palette.g().add(25, 0.6);
-	palette.b().add(24, 0.25);
-
-	palette.r().add(52, 1);
-	palette.g().add(50, 1);
-	palette.b().add(48, 1);
-
-	palette.r().add(78, 0.2);
-	palette.g().add(75, 0.2);
-	palette.b().add(72, 0.8);
-
-	palette.r().setPeriod(104);
-	palette.g().setPeriod(100);
-	palette.b().setPeriod(96);
-
-	QList< Interpreter<long double> > base;
-
-	Interpreter<long double> iteration;
-
-	iteration.addRROp(QString("sqr"), -1, -1);
-	iteration.addRROp(QString("add_c"), -1, -1);
-
-	generator_ = Mandelbrot<long double>(
-			Transformation<long double>(4, 0, 0, 4, -2, -2),
-			base,
-			iteration,
-			10240,
-			2,
-			1e-6,
-			palette).createGenerator(640, 480);
-
-	initMenu();
-	initGUI();
-	initConnections();
-
-	//imgGenController = new generator_ControlWidget(this, generator_);
-
-
-	generator_->start();
+	init();
 }
 
-MainWindow::~MainWindow()
-{
-	generator_->cancelWait();
-	delete generator_;
-	//delete imgGenController;
-}
+MainWindow::~MainWindow() {}
 
-void MainWindow::initMenu() {
-	/*fileMenu = menuBar()->addMenu(tr("&File"));
-	saveImageAction = fileMenu->addAction(tr("&Save Image"));
+void MainWindow::init() {
+	// Menu
+	fileMenu = menuBar()->addMenu(tr("&File"));
 
-	viewMenu = menuBar()->addMenu(tr("&View"));
-	fullScreenAction = viewMenu->addAction(tr("&Full Screen"));
+	newMenu = fileMenu->addMenu(tr("&New"));
+	newMandelbrotAction = newMenu->addAction("&Mandelbrot Set");
+	connect(newMandelbrotAction, SIGNAL(triggered()), this, SLOT(newMandelbrot()));
 
-	imageMenu = menuBar()->addMenu(tr("&Image"));
-	resizeAction = imageMenu->addAction(tr("&Resize"));
-	imageMenu->addSeparator();
-	mandelbrotAction = imageMenu->addAction(tr("&Mandelbrot"));
-	magneticPendulumAction = imageMenu->addAction(tr("Magnetic &Pendulum"));
-	ifsAction = imageMenu->addAction(tr("&IFS"));*/
+	newLambdaAction = newMenu->addAction("&Lambda");
+	connect(newLambdaAction, SIGNAL(triggered()), this, SLOT(newLambda()));
+
+	newPendulumAction = newMenu->addAction("&Pendulum");
+	connect(newPendulumAction, SIGNAL(triggered()), this, SLOT(newPendulum()));
+
+	saveImageAction = fileMenu->addAction("&Save Image");
+	connect(saveImageAction, SIGNAL(triggered()), this, SLOT(saveImage()));
+
+	closeAction = fileMenu->addAction("&Close Tab");
+	connect(closeAction, SIGNAL(triggered()), this, SLOT(closeTab()));
 
 	settingsMenu = menuBar()->addMenu(tr("&Settings"));
 	browseAction = settingsMenu->addAction(tr("&Browse"));
+	connect(browseAction, SIGNAL(triggered(bool)), this, SLOT(browseMode(bool)));
+
 	selectAction = settingsMenu->addAction(tr("&Select"));
+	connect(selectAction, SIGNAL(triggered(bool)), this, SLOT(selectMode(bool)));
 
 	browseAction->setCheckable(true);
 	selectAction->setCheckable(true);
@@ -93,40 +51,16 @@ void MainWindow::initMenu() {
 
 	browseAction->setChecked(Settings::settings()->selectionMode() == 0);
 	selectAction->setChecked(Settings::settings()->selectionMode() == 1);
-}
 
-void MainWindow::initGUI() {
-	imgWidget = new ImageControlWidget(this, generator_);
-	this->setCentralWidget(imgWidget);
-}
+	// GUI Elements
+	tabWidget = new QTabWidget(this);
+	tabWidget->setTabsClosable(true);
+	tabWidget->setTabShape(QTabWidget::Triangular);
+	connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 
-void MainWindow::initConnections() {
-	//connect(saveImageAction, SIGNAL(triggered()), this, SLOT(saveImage()));
+	this->setCentralWidget(tabWidget);
 
-	connect(browseAction, SIGNAL(triggered(bool)), this, SLOT(browseMode(bool)));
-	connect(selectAction, SIGNAL(triggered(bool)), this, SLOT(selectMode(bool)));
-
-	//connect(ifsAction, SIGNAL(triggered()), this, SLOT(ifs()));
-	//connect(magneticPendulumAction, SIGNAL(triggered()), this, SLOT(magneticPendulum()));
-	//connect(mandelbrotAction, SIGNAL(triggered()), this, SLOT(mandelbrot()));
-}
-
-void MainWindow::saveImage() {
-	// TODO: Check whether still running and warn
-	QString fileName = QFileDialog::getSaveFileName(this,
-	     tr("Save Image"), "", tr("Image Files (*.png)"));
-
-	if(!fileName.isEmpty()) {
-		generator_->image().save(fileName, "PNG");
-		// Provide error message
-	}
-}
-
-void MainWindow::fullScreen() {
-}
-
-void MainWindow::resizeImage() {
-
+	newMandelbrot();
 }
 
 void MainWindow::browseMode(bool enable) {
@@ -135,4 +69,45 @@ void MainWindow::browseMode(bool enable) {
 
 void MainWindow::selectMode(bool enable) {
 	Settings::settings()->setSelectionMode(enable ? 1 : 0);
+}
+
+void MainWindow::newMandelbrot() {
+	Specification* spec = Settings::settings()->specifications()[QString("mandelbrot")];
+	addTab(spec);
+}
+
+void MainWindow::newLambda() {
+	Specification* spec = Settings::settings()->specifications()[QString("lambda")];
+	addTab(spec);
+}
+
+void MainWindow::newPendulum() {
+	Specification* spec = Settings::settings()->specifications()[QString("pendulum")];
+	addTab(spec);
+}
+
+void MainWindow::saveImage(int index) {
+	QWidget* widget = index == -1? tabWidget->currentWidget() : tabWidget->widget(index);
+
+	ImageControlWidget* imgWidget = dynamic_cast<ImageControlWidget*>(widget);
+
+	if(imgWidget != 0) {
+		imgWidget->saveImage();
+	}
+}
+
+void MainWindow::closeTab(int index) {
+	QWidget* widget = tabWidget->widget(index);
+
+	ImageControlWidget* imgWidget = dynamic_cast<ImageControlWidget*>(widget);
+
+	if(imgWidget != 0) {
+		tabWidget->removeTab(index);
+		delete imgWidget;
+	}
+}
+
+void MainWindow::addTab(Specification* spec) {
+	ImageControlWidget* imgWidget = new ImageControlWidget(this, spec);
+	tabWidget->addTab(imgWidget, tr("Tab"));
 }

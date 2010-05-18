@@ -37,7 +37,6 @@ class Generator : public QObject {
 	QList<Thread*> threads_;
 
 	QMutex mutex_;
-	QMutex threadMutex_;
 
 public:
 	Generator(int threadCount, bool isSelectable);
@@ -47,8 +46,8 @@ public:
 
 	bool isRunning() const; // runningCount_ > 0?
 
-	virtual int progress() = 0;
-	virtual int totalSteps() = 0;
+	virtual int progress() const = 0;
+	virtual int totalSteps() const = 0;
 
 	bool isSelectable() const;
 
@@ -98,17 +97,21 @@ protected:
 	  * if this function returns true */
 	bool isStopped() const;
 
-	/** Obtains lock, cancels tasks (if running) and waits for termination */
-	void lockCancelWait();
+	/** Cancels tasks (if running) and waits for termination, Not thread-safe */
+	void cancelWaitUnsafe();
 
-	/** Starts threads and releases lock */
-	void startUnlock();
+	/** Starts threads. Not thread-safe */
+	void startUnsafe();
+
+	int threadCount() const;
 
 	/** Some initialization code for subclasses */
 	virtual void init() = 0;
 
 	/** Method called by the index-th thread */
-	virtual void exec(int index, int count) = 0;
+	virtual void exec(int index) = 0;
+
+	QMutex threadMutex_;
 
 private:
 	void run(int i);

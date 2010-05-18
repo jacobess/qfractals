@@ -8,9 +8,11 @@ template<class T>
 class Spline {
 	T period_;
 
+        QVarLengthArray<T> xs;
+        QVarLengthArray<T> ys;
+
 public:
-	QVarLengthArray<T> xs;
-	QVarLengthArray<T> ys;
+
 	Spline(T period = 0);
 
 	T mod(T x, int* pIndex = 0) const;

@@ -3,14 +3,15 @@
 #include "math.h"
 
 RenderedImage::RenderedImage(int width, int height, int aaDeg, const ColorProvider* colorProvider) :
-		img_(width, height),
+		width_(width),
+		height_(height),
 		aaDeg_(aaDeg),
+		img_(width, height),
 		types_(new uchar[width * height * aaDeg * aaDeg]),
-		vals_(new float[width * height * aaDeg * aaDeg]),
+		vals_(new double[width * height * aaDeg * aaDeg]),
 		colorProvider_(colorProvider)
 {
-	int size = width * height * aaDeg * aaDeg;
-	std::fill(types_, types_ + size, 0xff);
+	clear();
 }
 
 RenderedImage::~RenderedImage() {
@@ -18,40 +19,28 @@ RenderedImage::~RenderedImage() {
 	delete[] vals_;
 }
 
-void RenderedImage::setColorProvider(const ColorProvider *colorProvider) {
-	colorProvider_ = colorProvider;
-}
-
 int RenderedImage::width() const {
-	return img_.width();
+	return width_;
 }
 
 int RenderedImage::height() const {
-	return img_.height();
+	return height_;
 }
 
-int RenderedImage::pointsPerPix() const {
+int RenderedImage::indicesPerPixel() const {
 	return aaDeg_ * aaDeg_;
+
 }
 
 const QImage& RenderedImage::image() const {
 	return img_.image();
 }
 
-
-void RenderedImage::clear() {
-	img_.clear();
-	std::fill(types_, types_ + width() * height() * pointsPerPix(), 0xff);
-}
-
 void RenderedImage::setSize(int w, int h) {
 	setSize(w, h, aaDeg_);
 }
 
-
 void RenderedImage::setSize(int w, int h, int aaDeg) {
-	img_.setSize(w, h);
-
 	aaDeg_ = aaDeg;
 	int size = w * h * aaDeg * aaDeg;
 
@@ -59,25 +48,35 @@ void RenderedImage::setSize(int w, int h, int aaDeg) {
 	delete[] vals_;
 
 	types_ = new uchar[size];
-	vals_ = new float[size];
+	vals_ = new double[size];
 
-	std::fill(types_, types_ + size, 0xff);
+	width_ = w;
+	height_ = h;
+
+	img_.setSize(w, h);
+	clearData();
+	// keep the stats as an approximation
 }
 
-void RenderedImage::scale(int cx, int cy, qreal factor) {
-	img_.scale(cx, cy, factor);
+void RenderedImage::clear() {
+	img_.clear();
+	clearData();
+}
 
-	uint size = width() * height() * pointsPerPix();
-	std::fill(types_, types_ + size, 0xff);
+void RenderedImage::clearData() {
+	std::fill(types_, types_ + width_ * height_ * aaDeg_ * aaDeg_, 0xff);
+}
+
+void RenderedImage::scale(int cx, int cy, double factor) {
+	img_.scale(cx, cy, factor);
+	clearData();
 }
 
 void RenderedImage::move(int dx, int dy) {
-	img_.move(dx, dy);
+	int w = width_;
+	int h = height_;
 
-	int w = width();
-	int h = height();
-
-	uint is = pointsPerPix();
+	uint is = aaDeg_ * aaDeg_;
 
 	// TODO: More elegant
 	int x0, x1, ix;
@@ -126,40 +125,33 @@ void RenderedImage::move(int dx, int dy) {
 
 		if(x == x1) break;
 	}
+
+	// data is still valid
+	img_.move(dx, dy);
 }
 
-void RenderedImage::select(qreal wx, qreal wy, qreal hx, qreal hy, qreal x0, qreal y0) {
+void RenderedImage::select(double wx, double wy, double hx, double hy, double x0, double y0) {
 	img_.select(wx, wy, hx, hy, x0, y0);
-
-	int size = width() * height() * pointsPerPix();
-	std::fill(types_, types_ + size, 0xff);
+	clearData();
 }
 
 void RenderedImage::refreshImage() {
-	for(int y = 0; y < height(); y++) {
-		for(int x = 0; x < width(); x++) {
+	for(int y = 0; y < height_; y++) {
+		for(int x = 0; x < width_; x++) {
 			updatePix(x, y);
 		}
 	}
 }
 
-
 void RenderedImage::updatePix(int x, int y) {
 	int cnt = 0;
 
-	float r = 0, g = 0, b = 0, a = 0;
+	double r = 0, g = 0, b = 0, a = 0;
 
-	int ix = pix(x, y, 0);
+	for(int i = 0; i < aaDeg_ * aaDeg_; i++) {
+		double r0, g0, b0, a0;
 
-	const uchar* t = types_ + ix;
-	const float* v = vals_ + ix;
-
-	for(int i = 0; i < pointsPerPix(); i++) {
-		if((*t) != 0xff) {
-			float r0, g0, b0, a0;
-
-			colorProvider_->color(*t, *v, r0, g0, b0, a0);
-
+		if(pix(x, y, i, r0, g0, b0, a0)) {
 			r += r0;
 			g += g0;
 			b += b0;
@@ -167,9 +159,6 @@ void RenderedImage::updatePix(int x, int y) {
 
 			cnt ++;
 		}
-
-		t++;
-		v++;
 	}
 
 	if(cnt > 0) {
@@ -182,53 +171,79 @@ void RenderedImage::updatePix(int x, int y) {
 	}
 }
 
-int RenderedImage::pix(int x, int y, int index) const {
-	return (x + y * width()) * pointsPerPix() + index;
-}
-
 bool RenderedImage::isClear(int x, int y, int index) const {
-	return types_[pix(x, y, index)] == 0xff;
+	int i = (x + y * width_) * aaDeg_ * aaDeg_ + index;
+
+	return types_[i] == 0xff;
 }
 
-qreal RenderedImage::pointX(int x, int index) const {
+double RenderedImage::pointX(int x, int index) const {
 	if(aaDeg_ == 1) {
 		return x + 0.5;
 	} else {
-		float inc = 1. / (2 * aaDeg_);
+		double inc = 1. / (2 * aaDeg_);
 
 		int ix = (index % aaDeg_);
 		int iy = (index / aaDeg_);
 
-		// TODO Check
-		return x + qreal(ix) / qreal(aaDeg_) + inc + ((iy % 2) * 2 - 1) * inc / 2.;
+		return x + double(ix) / double(aaDeg_) + inc +
+				((iy % 2) * 2 - 1) * inc / 2.;
 	}
 
 }
 
-qreal RenderedImage::pointY(int y, int index) const {
+double RenderedImage::pointY(int y, int index) const {
 	if(aaDeg_ == 1) {
 		return y + 0.5;
 	} else {
-		float inc = 1. / (2 * aaDeg_);
+		double inc = 1. / (2 * aaDeg_);
 
 		int ix = (index % aaDeg_);
 		int iy = (index / aaDeg_);
 
-		return y + qreal(iy) / qreal(aaDeg_) + inc + ((ix % 2) * 2 - 1) * inc / 2.;
+		return y + double(iy) / double(aaDeg_) + inc +
+				((ix % 2) * 2 - 1) * inc / 2.;
 	}
 }
 
-void RenderedImage::setPix(int x, int y, int index, uchar type, float val) {
-	uint i = pix(x, y, index);
+bool RenderedImage::pix(int x, int y, int index, uchar& type, double& value) {
+	int i = (x + y * width_) * aaDeg_ * aaDeg_ + index;
+
+	type = types_[i];
+
+	if(type != 0xff) {
+		value = vals_[i];
+
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool RenderedImage::pix(int x, int y, int index, double &r, double &g, double &b, double &a) {
+
+	uchar type;
+	double value;
+
+	if(pix(x, y, index, type, value)) {
+		colorProvider_->color(type, value, r, g, b, a);
+
+		return true;
+	} else {
+		return false;
+	}
+}
+
+void RenderedImage::setPix(int x, int y, int index, uchar type, double val) {
+	int i = (x + y * width_) * aaDeg_ * aaDeg_ + index;
 
 	types_[i] = type;
 	vals_[i] = val;
 
 	if(index == 0) {
-		float r, g, b, a;
+		double r, g, b, a;
 
-		colorProvider_->color(type, val,
-				     r, g, b, a);
+		pix(x, y, 0, r, g, b, a);
 
 		img_.setRgba(x, y, r, g, b, a);
 	} else {

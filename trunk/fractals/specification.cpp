@@ -27,11 +27,11 @@ const QImage& Generator::image() const {
 }
 
 void Generator::setSize(int width, int height) {
-	lockCancelWait();
+	QMutexLocker locker(&threadMutex_);
 
+	cancelWaitUnsafe();
 	img().setSize(width, height);
-
-	startUnlock();
+	startUnsafe();
 }
 
 int Generator::width() const {
@@ -63,34 +63,31 @@ bool Generator::isRunning() const {
 	return runningCount_ > 0;
 }
 
-void Generator::start() {
-	mutex_.lock();
-
-	//qDebug("Setting isStopped to false in start()");
-	isStopped_ = false;
-
-	startUnlock();
+int Generator::threadCount() const {
+	return threads_.size();
 }
 
-void Generator::startUnlock() {
-	//qDebug("startUnlock");
 
-	// TODO Wait for a short period to avoid threads with 0 runtime
+void Generator::start() {
+	QMutexLocker locker(&threadMutex_);
+	isStopped_ = false;
+	startUnsafe();
+}
 
+void Generator::startUnsafe() {
 	if(!isStopped_) {
 		runningCount_ = threads_.size();
 
-		//qDebug("Sending starting signal");
 		emit started();
 
-		//qDebug("Starting thread 0...");
-		threads_[0]->start();
+		init();
+
+		for(int i = 0; i < threads_.size(); i++) {
+			threads_[i]->start();
+		}
 	} else {
 		isStopped_ = false;
 	}
-
-	//qDebug("end startUnlock");
-	mutex_.unlock();
 }
 
 void Generator::cancel() {
@@ -99,49 +96,29 @@ void Generator::cancel() {
 }
 
 void Generator::cancelWait() {
-	//qDebug("cancelWait");
-	lockCancelWait();
-	mutex_.unlock();
-	//qDebug("end cancelWait");
+	QMutexLocker locker(&threadMutex_);
+	cancelWaitUnsafe();
 }
 
-void Generator::lockCancelWait() {
-	////qDebug("lockCancelWait");
-	mutex_.lock();
-
+void Generator::cancelWaitUnsafe() {
 	if(isRunning()) {
 		cancel();
-
-		//qDebug("Waiting for threads to stop");
 
 		foreach(Thread* t, threads_) {
 			t->wait();
 		}
-
-		//qDebug("Threads stopped");
 	}
-
-	////qDebug("end lockCancelWait");
 }
 
 void Generator::run(int i) {
-	if(i == 0) {
-		//qDebug("Zero-Thread starting other threads");
-		// Zero-Thread initializes image and starts other threads
-		init();
-
-		for(int i = 1; i < threads_.size(); i++) {
-			threads_[i]->start();
-		}
-	}
-
 	if(!isStopped()) {
-		exec(i, threads_.size());
+		exec(i);
 	} else {
 		//qDebug("Do not execute thread %d since already stopped", i);
 	}
 
-	QMutexLocker locker(&threadMutex_);
+	// TODO: Dead lock with other thread
+	QMutexLocker locker(&mutex_);
 	runningCount_ --;
 
 	if(runningCount_ == 0)

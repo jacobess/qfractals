@@ -23,13 +23,13 @@ public:
 	ViewportGenerator(int threadCount);
 	virtual ~ViewportGenerator();
 
-	void scale(int cx, int cy, qreal factor);
+	void scale(int cx, int cy, double factor);
 	void move(int dx, int dy);
-	void select(qreal wx, qreal wy, qreal hx, qreal hy, qreal x0, qreal y0);
+	void select(double wx, double wy, double hx, double hy, double x0, double y0);
 
 	virtual const Viewport<T>& specification() const = 0;
 
-	QString pointDescription(qreal x, qreal y);
+	QString pointDescription(double x, double y);
 
 protected:
 	virtual Viewport<T>& specification() = 0;

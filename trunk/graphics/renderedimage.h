@@ -6,58 +6,62 @@
 
 class ColorProvider {
 public:
-	virtual void color(uchar type, float val,
-			   float& r, float& g, float& b, float& a) const = 0;
+	virtual void color(uchar type, double value,
+			   double& r, double& g, double& b, double& a) const = 0;
 };
 
 class RenderedImage : public Image {
 
-	ImageWrapper img_;
+	// Parameters
+	int width_;
+	int height_;
 	int aaDeg_;
+
+	// Data
+	ImageWrapper img_;
 
 	// type 255 = pixel is clear
 	uchar* types_;
-	float* vals_;
+	double* vals_; // size is combination of img_ width and img_ height
 
 	const ColorProvider* colorProvider_;
 
 public:
-	RenderedImage(int width, int height, int aaDeg, const ColorProvider* colorProvider);
+	RenderedImage(int width, int height, int aaDeg, const ColorProvider* colorProvider = 0);
 	virtual ~RenderedImage();
-
-	RenderedImage& operator=(const RenderedImage& img);
 
 	int width() const;
 	int height() const;
+	int indicesPerPixel() const;
 
-	int pointsPerPix() const;
-
-	const QImage& image();
 	const QImage& image() const;
-
-	void setColorProvider(const ColorProvider* colorProvider);
 
 	void setSize(int width, int height);
 
 	void setSize(int width, int height, int aaDeg);
 
 	void clear();
+
 	void refreshImage();
 
 	// Modify the image
-	void scale(int cx, int cy, qreal factor);
+	void scale(int cx, int cy, double factor);
 	void move(int dx, int dy);
-	void select(qreal wx, qreal wy, qreal hx, qreal hy, qreal x0, qreal y0);
+	void select(double wx, double wy, double hx, double hy, double x0, double y0);
 
 	bool isClear(int x, int y, int index) const;
 
-	qreal pointX(int x, int index) const;
-	qreal pointY(int y, int index) const;
+	double pointX(int x, int index) const;
+	double pointY(int y, int index) const;
 
-	void setPix(int x, int y, int index, uchar type, float val);
+	bool pix(int x, int y, int index, double& r, double& g, double& b, double& a);
+	bool pix(int x, int y, int index, uchar& type, double& value);
+
+	void setPix(int x, int y, int index, uchar type, double value);
 
 protected:
+	void clearData();
+
 	void updatePix(int x, int y);
-	int pix(int x, int y, int index) const;
 };
 #endif // RENDEREDIMAGE_H

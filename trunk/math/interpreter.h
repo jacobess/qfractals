@@ -80,19 +80,19 @@
 
 #define RD_SRC(src, regs, tr, ti)						\
 {										\
-	int k = (src);								\
-	if(k != 0) {								\
-		tr = regs[(k - 1) * 2];						\
-		ti = regs[(k - 1) * 2 + 1];					\
+	int k = (src) * 2 - 1;								\
+	if(k >= 0) {								\
+		tr = regs[k - 1];						\
+		ti = regs[k];					\
 	}									\
 }
 
 #define WT_DST(dst, regs, tr, ti)						\
 {										\
-	int k = (dst);								\
-	if(k != 0) {								\
-		tr = regs[(k - 1) * 2];						\
-		ti = regs[(k - 1) * 2 + 1];					\
+	int k = (dst) * 2 - 1;								\
+	if(k >= 0) {								\
+		regs[k - 1] = tr;						\
+		regs[k] = ti;					\
 	}									\
 }
 
@@ -391,7 +391,7 @@ public:
 	Interpreter();
 
 	// Returns the index of the register
-	int addReg(T re, T im);
+	int addReg(T re = 0, T im = 0);
 
 	// if a source is negative, no register is used
 	bool addRRROp(QString op, int dst = -1, int src1 = -1, int src2 = -1);

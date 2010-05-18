@@ -11,17 +11,13 @@ class MainWindow : public QMainWindow {
 	Q_OBJECT
 
 	QMenu* fileMenu;
+	QMenu* newMenu;
+
+	QAction* newMandelbrotAction;
+	QAction* newLambdaAction;
+	QAction* newPendulumAction;
 	QAction* saveImageAction;
-
-	QMenu* viewMenu;
-	QAction* fullScreenAction;
-
-	QMenu* imageMenu;
-	QAction* resizeAction;
-	QAction* mandelbrotAction;
-	QAction* magneticPendulumAction;
-	QAction* ifsAction;
-	QAction* buddhabrotAction;
+	QAction* closeAction;
 
 	QMenu* settingsMenu;
 	QAction* browseAction;
@@ -29,26 +25,26 @@ class MainWindow : public QMainWindow {
 
 	QActionGroup* selectionModeActionGroup;
 
-	ImageControlWidget* imgWidget;
-
-	Generator* generator_;
+	QTabWidget* tabWidget;
 
 public:
 	MainWindow(QWidget *parent = 0);
 	~MainWindow();
 
 private slots:
-	void saveImage();
-	void fullScreen();
-	void resizeImage();
 	void browseMode(bool enable);
 	void selectMode(bool enable);
 
+	void newMandelbrot();
+	void newLambda();
+	void newPendulum();
+	void saveImage(int tab = -1);
+	void closeTab(int tab);
+
+	void addTab(Specification* spec);
+
 private:
-	void initMenu();
-	void initGUI();
-	void initConnections();
-	void setGenerator(Generator* generator);
+	void init();
 };
 
 #endif // MAINWINDOW_H

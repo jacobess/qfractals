@@ -5,13 +5,23 @@
 
 #define ABS(x)	((x) >= 0 ? (x) : -(x))
 
-ImageControlWidget::ImageControlWidget(QWidget* parent, Generator* generator) :
-		QWidget(parent), generator_(generator)
+ImageControlWidget::ImageControlWidget(QWidget* parent, Specification* spec) :
+		QWidget(parent), generator_(
+				spec->createGenerator(
+						Settings::settings()->defaultWidth(),
+						Settings::settings()->defaultHeight()))
 {
-	initGUI();
+	init();
+	generator_->start();
 }
 
-void ImageControlWidget::initGUI() {
+ImageControlWidget::~ImageControlWidget() {
+	// TODO Causes bad bad things.
+	generator_->cancelWait();
+	delete generator_;
+}
+
+void ImageControlWidget::init() {
 	selectableWidget_ = new SelectableWidget(this, generator_);
 
 	scrollArea_ = new QScrollArea(this);
@@ -48,7 +58,7 @@ void ImageControlWidget::initGUI() {
 	scaleSlider_->setValue(0);
 	scaleSlider_->setEnabled(false);
 
-	autoScaleCheckBox_ = new QCheckBox("Auto", this);
+	autoScaleCheckBox_ = new QCheckBox("Fill", this);
 	autoScaleCheckBox_->setChecked(true);
 
 	hLayout_ = new QHBoxLayout;
@@ -56,12 +66,12 @@ void ImageControlWidget::initGUI() {
 	hLayout_->addWidget(saveButton_);
 	hLayout_->addWidget(resizeButton_);
 	hLayout_->addWidget(editButton_);
-	hLayout_->addSpacing(12);
+	hLayout_->addSpacing(18);
 	hLayout_->addWidget(scaleSlider_);
 	hLayout_->addWidget(autoScaleCheckBox_);
-	hLayout_->addSpacing(12);
+	hLayout_->addSpacing(18);
 	hLayout_->addWidget(statusLabel_);
-	hLayout_->addSpacing(12);
+	hLayout_->addSpacing(18);
 	hLayout_->addWidget(progressBar_);
 	hLayout_->addWidget(cancelButton_);
 
@@ -90,6 +100,7 @@ void ImageControlWidget::initGUI() {
 
 	connect(&updateTimer_, SIGNAL(timeout()), selectableWidget_, SLOT(repaint()));
 	connect(&updateTimer_, SIGNAL(timeout()), this, SLOT(updateProgress()));
+	connect(&refreshTimer_, SIGNAL(timeout()), generator_, SLOT(refresh()));
 
 	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(cancel()));
 }
@@ -206,12 +217,26 @@ void ImageControlWidget::setStarted() {
 	disconnect(cancelButton_, 0, generator_, 0);
 	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(cancel()));
 
-	// TODO Replace by Setting::
-	// TODO Start refresh timer
-	updateTimer_.start(Settings::settings()->updateInterval());
+	if(this->isVisible()) {
+		updateTimer_.start(Settings::settings()->updateInterval());
+		refreshTimer_.start(Settings::settings()->refreshInterval());
+	}
 
 	progressBar_->setEnabled(generator_->isRunning());
 }
+
+void ImageControlWidget::showEvent(QShowEvent *) {
+	if(generator_->isRunning()) {
+		updateTimer_.start(Settings::settings()->updateInterval());
+		refreshTimer_.start(Settings::settings()->refreshInterval());
+	}
+}
+
+void ImageControlWidget::hideEvent(QHideEvent *) {
+	updateTimer_.stop();
+	refreshTimer_.stop();
+}
+
 
 void ImageControlWidget::updateProgress() {
 	int totalSteps = generator_->totalSteps();
@@ -224,17 +249,22 @@ void ImageControlWidget::updateProgress() {
 	progressBar_->setValue(progress);
 }
 
-void ImageControlWidget::setDone(bool) {
+void ImageControlWidget::setDone(bool cancelled) {
 	//qDebug("Received done-signal");
 
 	cancelButton_->setText("Resume");
+
+	progressBar_->setEnabled(false);
+
 	disconnect(cancelButton_, 0, generator_, 0);
 	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(start()));
 
 	updateTimer_.stop();
-	// TODO If not cancelled
+	refreshTimer_.stop();
 
-	progressBar_->setEnabled(false);
+	if(!cancelled) {
+		generator_->refresh();
+	}
 }
 
 void ImageControlWidget::setStatus(QString message) {

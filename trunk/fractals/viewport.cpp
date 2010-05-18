@@ -27,25 +27,28 @@ template<class T>
 ViewportGenerator<T>::~ViewportGenerator() {}
 
 template<class T>
-void ViewportGenerator<T>::scale(int cx, int cy, qreal factor) {
-	lockCancelWait();
+void ViewportGenerator<T>::scale(int cx, int cy, double factor) {
+	QMutexLocker locker(&threadMutex_);
+	cancelWaitUnsafe();
 
 	img().scale(cx, cy, factor);
 
-	qreal dx = img().normX(cx);
-	qreal dy = img().normY(cy);
+	double dx = img().normX(cx);
+	double dy = img().normY(cy);
 
 	Transformation<T> s(factor, 0, 0, factor, (1 - factor) * dx, (1 - factor) * dy);
 
 	Transformation<T>& t = specification().transformation();
 	t = s * t;
 
-	startUnlock();
+	startUnsafe();
 }
 
 template<class T>
 void ViewportGenerator<T>::move(int dx, int dy) {
-	lockCancelWait();
+	QMutexLocker locker(&threadMutex_);
+
+	cancelWaitUnsafe();
 
 	img().move(dx, dy);
 
@@ -59,12 +62,14 @@ void ViewportGenerator<T>::move(int dx, int dy) {
 	Transformation<T>& t = specification().transformation();
 	t = tr * t;
 
-	startUnlock();
+	startUnsafe();
 }
 
 template<class T>
-void ViewportGenerator<T>::select(qreal wx, qreal wy, qreal hx, qreal hy, qreal x0, qreal y0) {
-	lockCancelWait();
+void ViewportGenerator<T>::select(double wx, double wy, double hx, double hy, double x0, double y0) {
+	QMutexLocker locker(&threadMutex_);
+
+	cancelWaitUnsafe();
 
 	img().select(wx, wy, hx, hy, x0, y0);
 
@@ -97,28 +102,28 @@ void ViewportGenerator<T>::select(qreal wx, qreal wy, qreal hx, qreal hy, qreal 
 	Transformation<T>& t = specification().transformation();
 	t = s * t;
 
-	startUnlock();
+	startUnsafe();
 }
 
 template<class T>
-QString ViewportGenerator<T>::pointDescription(qreal x, qreal y) {
-	qreal x0 = img().normX(x);
-	qreal y0 = img().normX(y);
+QString ViewportGenerator<T>::pointDescription(double x, double y) {
+	double x0 = img().normX(x);
+	double y0 = img().normX(y);
 
 	T tx = specification().transformation().toX(x0, y0);
 	T ty = specification().transformation().toY(x0, y0);
 
 	int prec = Settings::settings()->coordinatesPrecision();
 
-	QString sx = QString("%1").arg((qreal) tx, 1, 'f', tx < 0 ? prec - 1 : prec);
-	QString sy = QString("%1").arg((qreal) ty, 1, 'f', ty < 0 ? prec - 1 : prec);
+	QString sx = QString("%1").arg((double) tx, 1, 'f', tx < 0 ? prec - 1 : prec);
+	QString sy = QString("%1").arg((double) ty, 1, 'f', ty < 0 ? prec - 1 : prec);
 
 	return QString("%1 | %2").arg(sx).arg(sy);
 }
 
 
-template class Viewport<qreal>;
-template class ViewportGenerator<qreal>;
+template class Viewport<double>;
+template class ViewportGenerator<double>;
 
 template class Viewport<long double>;
 template class ViewportGenerator<long double>;

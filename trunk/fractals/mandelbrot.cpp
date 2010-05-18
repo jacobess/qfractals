@@ -21,21 +21,6 @@ template<class T>
 Mandelbrot<T>::~Mandelbrot() {}
 
 template<class T>
-void Mandelbrot<T>::color(uchar type, float val,
-			  float& r, float& g, float& b, float& a) const {
-	if(type == 1) {
-		if(val > 2.7183) {
-			val /= log(val);
-		}
-
-		bailoutPalette_.color(val, r, g, b, a);
-	} else {
-		r = g = b = 0;
-		a = 1;
-	}
-}
-
-template<class T>
 const QList< Interpreter<T> >& Mandelbrot<T>::base() const {
 	return base_;
 }
@@ -108,6 +93,8 @@ RenderingEnv<T>* Mandelbrot<T>::createEnv() const {
 	return new MandelbrotEnv<T>(*this);
 }
 
+
+
 template<class T>
 MandelbrotEnv<T>::MandelbrotEnv(const Mandelbrot<T>& spec) :
 	spec_(spec), xs_(new T[10240]), ys_(new T[10240]) {}
@@ -119,7 +106,7 @@ MandelbrotEnv<T>::~MandelbrotEnv() {
 }
 
 template<class T>
-void MandelbrotEnv<T>::calc(const T& x, const T& y, uchar& type, float& value) {
+void MandelbrotEnv<T>::calc(const T& x, const T& y, uchar& type, double& value) {
 
 	int maxIter = spec_.maxIterations();
 
@@ -160,7 +147,6 @@ void MandelbrotEnv<T>::calc(const T& x, const T& y, uchar& type, float& value) {
 
 		xn++;
 		yn++;
-
 	}
 
 	int count = spec_.iteration().opCount();
@@ -227,10 +213,8 @@ void MandelbrotEnv<T>::calc(const T& x, const T& y, uchar& type, float& value) {
 
 template<class T>
 MandelbrotGenerator<T>::MandelbrotGenerator(int width, int height, const Mandelbrot<T>& spec) :
-		RenderingGenerator<T>(width, height, 2, &spec),
-		spec_(spec) {
-	this->img().setColorProvider(&spec_);
-}
+		RenderingGenerator<T>(width, height, 2),
+		spec_(spec) {}
 
 template<class T>
 MandelbrotGenerator<T>::~MandelbrotGenerator() {}
@@ -245,9 +229,25 @@ Mandelbrot<T>& MandelbrotGenerator<T>::specification() {
 	return spec_;
 }
 
-template class Mandelbrot<qreal>;
-template class MandelbrotEnv<qreal>;
-template class MandelbrotGenerator<qreal>;
+
+template<class T>
+void MandelbrotGenerator<T>::color(uchar type, double value,
+			  double& r, double& g, double& b, double& a) const {
+	if(type == 1) {
+		if(value > 2.7183) {
+			value /= log(value);
+		}
+
+		spec_.bailoutPalette().color(value, r, g, b, a);
+	} else {
+		r = g = b = 0;
+		a = 1;
+	}
+}
+
+template class Mandelbrot<double>;
+template class MandelbrotEnv<double>;
+template class MandelbrotGenerator<double>;
 
 template class Mandelbrot<long double>;
 template class MandelbrotEnv<long double>;

@@ -9,52 +9,65 @@ template<class T>
 Rendering<T>::~Rendering() {}
 
 template<class T>
-RenderingGenerator<T>::RenderingGenerator(int width, int height, int aa, const ColorProvider* cp) :
-		ViewportGenerator<T>(Settings::settings()->threadCount()),
-		renderImg_(width, height, aa, cp) {}
+RenderingGenerator<T>::RenderingGenerator(int width, int height, int aa) :
+		ViewportGenerator<T>(Settings::settings()->threadCount()) {
+	renderImg_ = new RenderedImage(width, height, aa, this);
+}
 
 template<class T>
-RenderingGenerator<T>::~RenderingGenerator() {}
+RenderingGenerator<T>::~RenderingGenerator() {
+	delete renderImg_;
+}
 
 template<class T>
-int RenderingGenerator<T>::progress() {
+int RenderingGenerator<T>::progress() const {
 	return pixCount_;
 }
 
 template<class T>
-int RenderingGenerator<T>::totalSteps() {
-	return renderImg_.width() * renderImg_.height() * renderImg_.pointsPerPix();
+int RenderingGenerator<T>::totalSteps() const {
+	return renderImg_->width() * renderImg_->height() * renderImg_->indicesPerPixel();
 }
 
 template<class T>
 void RenderingGenerator<T>::setSize(int width, int height, int aa) {
-	this->lockCancelWait();
-	renderImg_.setSize(width, height, aa);
-	this->startUnlock();
+	QMutexLocker locker(&this->threadMutex_);
+	this->cancelWaitUnsafe();
+	renderImg_->setSize(width, height, aa);
+	this->startUnsafe();
 }
 
 template<class T>
 RenderedImage& RenderingGenerator<T>::img() {
-	return renderImg_;
+	return *renderImg_;
 }
 
 template<class T>
 const RenderedImage& RenderingGenerator<T>::img() const {
-	return renderImg_;
+	return *renderImg_;
 }
 
 template<class T>
 void RenderingGenerator<T>::init() {
 	pixCount_ = 0;
+
+	count_.fill(0, 255 * this->threadCount());
+	min_.fill(INFINITY, 255 * this->threadCount());
+	max_.fill(-INFINITY, 255 * this->threadCount());
+	sum_.fill(0, 255 * this->threadCount());
+	sqrSum_.fill(0, 255 * this->threadCount());
 }
 
 template<class T>
-void RenderingGenerator<T>::exec(int index, int count) {
+void RenderingGenerator<T>::exec(int index) {
+        // Link to the specification of the generator.
 	RenderingEnv<T>* env = specification().createEnv();
 
-	int w = renderImg_.width();
-	int h = renderImg_.height();
-	int ppp = renderImg_.pointsPerPix();
+	int w = renderImg_->width();
+	int h = renderImg_->height();
+	int ppp = renderImg_->indicesPerPixel();
+
+	int tc = this->threadCount();
 
 	int max = w > h ? w : h;
 
@@ -66,19 +79,20 @@ void RenderingGenerator<T>::exec(int index, int count) {
 	for(int i = 0; i < ppp && !this->isStopped(); i ++) {
 
 		// Middle point is a special case
-		if(index == 0) calcPix(x, y, i, env);
+		if(index == 0) calcPix(x, y, i, 0, env);
 
 		for(int r = 1; r <= (max + 1) / 2 && !this->isStopped(); r ++) {
 			for(int a = -r; a < r && !this->isStopped(); a++) {
 				if(idxCount == index) {
 					// If this thread is responsible
-					if(!this->isStopped()) calcPix(x + a, y - r, i, env);
-					if(!this->isStopped()) calcPix(x - a, y + r, i, env);
-					if(!this->isStopped()) calcPix(x + r, y + a, i, env);
-					if(!this->isStopped()) calcPix(x - r, y - a, i, env);
+					calcPix(x + a, y - r, i, index, env);
+					calcPix(x - a, y + r, i, index, env);
+					calcPix(x + r, y + a, i, index, env);
+					calcPix(x - r, y - a, i, index, env);
 				}
 
-				idxCount = (idxCount + 1) % count;
+				idxCount++;
+				if(idxCount == tc) idxCount = 0;
 			}
 		}
 	}
@@ -87,33 +101,99 @@ void RenderingGenerator<T>::exec(int index, int count) {
 }
 
 template<class T>
-void RenderingGenerator<T>::calcPix(int x, int y, int i, RenderingEnv<T>* env) {
-	int w = renderImg_.width();
-	int h = renderImg_.height();
+void RenderingGenerator<T>::calcPix(int x, int y, int i, int threadIndex, RenderingEnv<T>* env) {
+	if(this->isStopped()) return;
+
+	int w = renderImg_->width();
+	int h = renderImg_->height();
 
 	if(0 <= x && x < w && 0 <= y && y < h) {
-		if(renderImg_.isClear(x, y, i)) {
-			qreal x0 = this->normX(renderImg_.pointX(x, i));
-			qreal y0 = this->normY(renderImg_.pointY(y, i));
+
+		uchar type;
+		double val;
+
+		if(!renderImg_->pix(x, y, i, type, val)) {
+			qreal x0 = this->normX(renderImg_->pointX(x, i));
+			qreal y0 = this->normY(renderImg_->pointY(y, i));
 
 			T tx = specification().transformation().toX(x0, y0);
 			T ty = specification().transformation().toY(x0, y0);
 
-			uchar type;
-			float val;
-
 			env->calc(tx, ty, type, val);
 
-			renderImg_.setPix(x, y, i, type, val);
+			renderImg_->setPix(x, y, i, type, val);
 		}
 
 		pixCount_++;
+
+		int idx = threadIndex * 255 + type;
+
+		count_[idx]++;
+		if(val < min_[idx]) min_[idx] = val;
+		if(val > max_[idx]) max_[idx] = val;
+		sum_[idx] += val;
+		sqrSum_[idx] += val * val;
 	}
 }
 
-template class Rendering<qreal>;
-template class RenderingEnv<qreal>;
-template class RenderingGenerator<qreal>;
+template<class T>
+int RenderingGenerator<T>::count(uchar type) const {
+	int total = 0;
+
+	for(int i = type; i < count_.size(); i += 255) {
+		total += count_[i];
+	}
+
+	return total;
+}
+
+template<class T>
+double RenderingGenerator<T>::min(uchar type) const {
+	double total = -INFINITY;
+
+	for(int i = type; i < min_.size(); i += 255) {
+		if(total < min_[i]) total = min_[i];
+	}
+
+	return total;
+}
+
+template<class T>
+double RenderingGenerator<T>::max(uchar type) const {
+	double total = -INFINITY;
+
+	for(int i = type; i < max_.size(); i += 255) {
+		if(total < max_[i]) total = max_[i];
+	}
+
+	return total;
+}
+
+template<class T>
+double RenderingGenerator<T>::sum(uchar type) const {
+	double total = 0;
+
+	for(int i = type; i < sum_.size(); i += 255) {
+		total += sum_[i];
+	}
+
+	return total;
+}
+
+template<class T>
+double RenderingGenerator<T>::sqrSum(uchar type) const {
+	double total = 0;
+
+	for(int i = type; i < sqrSum_.size(); i += 255) {
+		total += sqrSum_[i];
+	}
+
+	return total;
+}
+
+template class Rendering<double>;
+template class RenderingEnv<double>;
+template class RenderingGenerator<double>;
 
 template class Rendering<long double>;
 template class RenderingEnv<long double>;

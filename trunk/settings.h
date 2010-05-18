@@ -12,40 +12,49 @@ class Settings {
 	// Generator Settings:
 	int threadCount_;
 	int updateInterval_;
+	int refreshInterval_;
 
 	// GUI-Settings:
 
 	// SelectableWidget:
-	int selectionRad;
+	int selectionRad_;
 	qreal maxScaleFactor_;
 	int scaleSliderTicks_;
 
 	int coordinatesPrecision_;
 
-	qreal zoom;
-	qreal altZoom;
-	qreal wheelZoom;
+	qreal zoom_;
+	qreal altZoom_;
+	qreal wheelZoom_;
 
-	int moveDist;
-	int shiftMoveDist;
-	int altMoveDist;
-	int altShiftMoveDist;
+	int moveDist_;
+	int shiftMoveDist_;
+	int altMoveDist_;
+	int altShiftMoveDist_;
 
-	QPen selPen1;
-	QPen selPen2;
-	QPen ptPen;
-	QPen selPtPen;
+	QPen selPen1_;
+	QPen selPen2_;
+	QPen ptPen_;
+	QPen selPtPen_;
 
 	int selectionMode_;
 
-	static Settings* singleton;
+	// Settings
+	QMap<QString, Specification*> specifications_;
 
+	int defaultWidth_;
+	int defaultHeight_;
+
+	static Settings* singleton_;
+
+private:
 	Settings();
+	void initSpecs();
 
 public:
-
 	static Settings* settings();
 
+	const QMap<QString, Specification*>& specifications() const;
 	/*Mandelbrot<double> *mandelbrotDefault() const;
 
 	IFS<double> *sierpinski() const;
@@ -76,8 +85,11 @@ public:
 	const QPen& pointPen() const;
 	const QPen& selectedPointPen() const;
 
-	int selectionMode();
+	int selectionMode() const;
 	void setSelectionMode(int mode);
+
+	int defaultWidth() const;
+	int defaultHeight() const;
 };
 
 #endif // SETTINGS_H

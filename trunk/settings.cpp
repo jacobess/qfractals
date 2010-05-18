@@ -1,53 +1,228 @@
 #include "settings.h"
 
-Settings* Settings::singleton = 0;
+#include "fractals/mandelbrot.h"
+#include "fractals/pendulum.h"
+
+Settings* Settings::singleton_ = 0;
 
 
 Settings::Settings() :
 		threadCount_(4),
-		updateInterval_(125),
-		selectionRad(7),
+		updateInterval_(175),
+		refreshInterval_(3000),
+		selectionRad_(7),
 		maxScaleFactor_(16),
 		scaleSliderTicks_(1024),
 		coordinatesPrecision_(9),
-		zoom(0.9),
-		altZoom(0.25),
-		wheelZoom(0.8),
-		moveDist(16),
-		shiftMoveDist(1),
-		altMoveDist(256),
-		altShiftMoveDist(256),
-		selPen1(Qt::white),
-		selPen2(Qt::black),
-		ptPen(Qt::white),
-		selPtPen(Qt::white),
-		selectionMode_(0)
+		zoom_(0.9),
+		altZoom_(0.25),
+		wheelZoom_(0.8),
+		moveDist_(16),
+		shiftMoveDist_(1),
+		altMoveDist_(256),
+		altShiftMoveDist_(256),
+		selPen1_(Qt::white),
+		selPen2_(Qt::black),
+		ptPen_(Qt::white),
+		selPtPen_(Qt::white),
+		selectionMode_(0),
+		defaultWidth_(640),
+		defaultHeight_(480)
 {
+	ptPen_.setWidthF(1.5);
 
-	ptPen.setWidthF(1.5);
+	selPen1_.setStyle(Qt::DashLine);
+	selPen2_.setStyle(Qt::DashLine);
 
-	selPen1.setStyle(Qt::DashLine);
-	selPen2.setStyle(Qt::DashLine);
+	selPen1_.setWidthF(1.5);
+	selPen2_.setWidthF(1.5);
 
-	selPen1.setWidthF(1.5);
-	selPen2.setWidthF(1.5);
-
-	QVector<qreal> dashPattern;
+	QVector<double> dashPattern;
 	dashPattern << 4 << 4;
 
-	selPen1.setDashPattern(dashPattern);
-	selPen2.setDashPattern(dashPattern);
+	selPen1_.setDashPattern(dashPattern);
+	selPen2_.setDashPattern(dashPattern);
 
-	selPen1.setDashOffset(0);
-	selPen2.setDashOffset(4);
+	selPen1_.setDashOffset(0);
+	selPen2_.setDashOffset(4);
+
+	initSpecs();
+}
+
+void Settings::initSpecs() {
+	// Mandelbrot Set
+
+	ColorPalette palette;
+	palette.a().add(0, 1);
+
+	palette.r().add(0, 0);
+	palette.g().add(0, 0);
+	palette.b().add(0, 0);
+
+	palette.r().add(26, 1);
+	palette.g().add(25, 0.6);
+	palette.b().add(24, 0.25);
+
+	palette.r().add(52, 1);
+	palette.g().add(50, 1);
+	palette.b().add(48, 1);
+
+	palette.r().add(78, 0.2);
+	palette.g().add(75, 0.2);
+	palette.b().add(72, 0.8);
+
+	palette.r().setPeriod(104);
+	palette.g().setPeriod(100);
+	palette.b().setPeriod(96);
+
+        {
+		// Mandelbrot:
+		QList< Interpreter<long double> > base;
+
+		Interpreter<long double> iteration;
+
+		iteration.addRROp(QString("sqr"), -1, -1);
+		iteration.addRROp(QString("add_c"), -1, -1);
+
+		specifications_["mandelbrot"] = new Mandelbrot<long double>(
+				Transformation<long double>(4, 0, 0, 4, -2, -2),
+				base,
+				iteration,
+				10240,
+				2,
+				1e-6,
+				palette);
+        }
+
+        {
+		// Lambda:
+		QList< Interpreter<double> > base;
+
+		Interpreter<double> z0;
+
+		z0.addRROp(QString("id"), -1, z0.addReg(0.5, 0));
+
+		base.push_back(z0);
+
+		Interpreter<double> iteration;
+
+		iteration.addRROp(QString("lambda"), -1, -1);
+		iteration.addRROp(QString("mul_c"), -1, -1);
+
+		specifications_["lambda"] = new Mandelbrot<double>(
+				Transformation<double>(4, 0, 0, 4, -2, -2),
+				base,
+				iteration,
+				10240,
+				2,
+				1e-6,
+				palette);
+        }
+
+	{
+		// TODO - find a quadratic formula
+		QList< Interpreter<double> > base;
+
+		Interpreter<double> iteration;
+
+		iteration.addRROp(QString("conj"), -1, -1);
+		iteration.addRROp(QString("sqr"), -1, -1);
+		iteration.addRROp(QString("add_c"), -1, -1);
+
+		specifications_["mandelbulb"] = new Mandelbrot<double>(
+				Transformation<double>(4, 0, 0, 4, -2, -2),
+				base,
+				iteration,
+				10240,
+				2,
+				1e-6,
+				palette);
+	}
+
+	{
+		// TODO - find a quadratic formula
+		QList< Interpreter<double> > base;
+
+		Interpreter<double> iteration;
+
+		int up;
+		int one;
+		int two;
+
+		iteration.addRROp(QString("sqr"));
+		iteration.addRROp(QString("add_c"));
+		iteration.addRRROp("sub", up = iteration.addReg(), -1, one = iteration.addReg(1));
+		/*iteration.addROp(QString("z"));
+		iteration.addRRROp(QString("mul"), -1, -1, two = iteration.addReg(2));
+		iteration.addRROp(QString("add_c"), -1, -1);
+		iteration.addRRROp(QString("sub"), -1, -1, two);
+		iteration.addRRROp(QString("div"), -1, up, -1);
+		iteration.addRROp(QString("sqr"));*/
+
+		specifications_["magnet1"] = new Mandelbrot<double>(
+				Transformation<double>(4, 0, 0, 4, -2, -2),
+				base,
+				iteration,
+				10240,
+				2,
+				1e-6,
+				palette);
+	}
+
+        {
+		QList< Magnet<double> > magnets;
+
+		int max = 3;
+
+		double hues[max];
+
+		hues[0] = 23. / 24.;
+		hues[1] = 1. / 6.;
+		hues[2] = 15. / 24.;
+
+		for(int i = 0; i < max; i++) {
+			ColorPalette p;
+
+			QColor color = QColor::fromHsvF(hues[i], 1, 1);
+
+			p.a().add(0, 1);
+
+			p.r().add(0, 1);
+			p.g().add(0, 1);
+			p.b().add(0, 1);
+
+			p.r().add(0.5, color.redF());
+			p.g().add(0.5, color.greenF());
+			p.b().add(0.5, color.blueF());
+
+			p.r().add(1, 0);
+			p.g().add(1, 0);
+			p.b().add(1, 0);
+
+			Magnet<double> m(2 * sin(i * 2 * M_PI / max), 2 * cos(i * 2 * M_PI / max), 0.0667, p);
+
+			magnets.push_back(m);
+		}
+
+		specifications_["pendulum"] = new Pendulum<double>(
+				Transformation<double>(10, 0, 0, 10, -5, -5),
+				magnets,
+				1000, // max steps
+				0.01, // step size
+				0.02, // friction
+				0.2,   // height
+				0.016 // gravity
+				);
+
+        }
 }
 
 Settings* Settings::settings() {
-	if(!singleton) {
-		singleton = new Settings();
+	if(!singleton_) {
+		singleton_ = new Settings();
 	}
 
-	return singleton;
+	return singleton_;
 }
 
 int Settings::threadCount() const {
@@ -58,11 +233,15 @@ int Settings::updateInterval() const {
 	return updateInterval_;
 }
 
-int Settings::selectionRadius() const {
-	return selectionRad;
+int Settings::refreshInterval() const {
+	return refreshInterval_;
 }
 
-qreal Settings::maxScaleFactor() const {
+int Settings::selectionRadius() const {
+	return selectionRad_;
+}
+
+double Settings::maxScaleFactor() const {
 	return maxScaleFactor_;
 }
 
@@ -74,48 +253,47 @@ int Settings::coordinatesPrecision() const {
 	return coordinatesPrecision_;
 }
 
-
-qreal Settings::zoomFactor() const {
-	return zoom;
+double Settings::zoomFactor() const {
+	return zoom_;
 }
 
-qreal Settings::altZoomFactor() const {
-	return altZoom;
+double Settings::altZoomFactor() const {
+	return altZoom_;
 }
 
-qreal Settings::wheelZoomFactor() const {
-	return wheelZoom;
+double Settings::wheelZoomFactor() const {
+	return wheelZoom_;
 }
 
 int Settings::moveDistance() const {
-	return moveDist;
+	return moveDist_;
 }
 
 int Settings::shiftMoveDistance() const {
-	return shiftMoveDist;
+	return shiftMoveDist_;
 }
 
 int Settings::altMoveDistance() const {
-	return altMoveDist;
+	return altMoveDist_;
 }
 
 int Settings::altShiftMoveDistance() const {
-	return altShiftMoveDist;
+	return altShiftMoveDist_;
 }
 
 const QPen& Settings::selectionPen1() const {
-	return selPen1;
+	return selPen1_;
 }
 
 const QPen& Settings::selectionPen2() const {
-	return selPen2;
+	return selPen2_;
 }
 
 const QPen& Settings::pointPen() const {
-	return ptPen;
+	return ptPen_;
 }
 
-int Settings::selectionMode() {
+int Settings::selectionMode() const {
 	return selectionMode_;
 }
 
@@ -123,10 +301,22 @@ void Settings::setSelectionMode(int selectionMode) {
 	selectionMode_ = selectionMode;
 }
 
-
 const QPen& Settings::selectedPointPen() const {
-	return selPtPen;
+	return selPtPen_;
 }
+
+const QMap<QString, Specification*>& Settings::specifications() const {
+	return specifications_;
+}
+
+int Settings::defaultWidth() const {
+	return defaultWidth_;
+}
+
+int Settings::defaultHeight() const {
+	return defaultHeight_;
+}
+
 
 /*
 Mandelbrot<double>* Settings::mandelbrotDefault() const {
@@ -199,16 +389,16 @@ IFS<double>* Settings::ifsDefault() const {
 
 MagneticPendulum<double>* Settings::magneticPendulumDefault() const {
 	QList<QPointF> magnets;
-	QList<qreal> strengths;
+	QList<double> strengths;
 	QList<QColor> colors;
 
 	int nr = 3;
-	qreal pi = 3.141529;
+	double pi = 3.141529;
 
 	for(int i = 0; i < nr; i++) {
 
-		qreal arc = 2 * pi * i / nr;
-		qreal rad = 2;
+		double arc = 2 * pi * i / nr;
+		double rad = 2;
 
 		magnets.push_back(QPointF(rad * cos(arc),
 					  rad * sin(arc)));
@@ -217,7 +407,7 @@ MagneticPendulum<double>* Settings::magneticPendulumDefault() const {
 
 	}
 
-	qreal friction = 0.07,
+	double friction = 0.07,
 	height = 0.25,
 	stepSize = 0.02,
 	pullBackForce = 0.25,

@@ -33,9 +33,15 @@ class ImageControlWidget : public QWidget
 	QTimer refreshTimer_;
 
 public:
-	ImageControlWidget(QWidget* parent, Generator* generator = 0);
+	ImageControlWidget(QWidget* parent, Specification* spec);
+	~ImageControlWidget();
 
-	void setGenerator(Generator* generator);
+public slots:
+	void saveImage();
+
+protected:
+	virtual void showEvent(QShowEvent *);
+	virtual void hideEvent(QHideEvent *);
 
 private slots:
 	void setAutoScale(bool autoScale);
@@ -49,11 +55,9 @@ private slots:
 	void setDone(bool cancelled);
 	void setStatus(QString message);
 	void showResizeDialog();
-	void saveImage();
 
 private:
-	void initGUI();
-	void initConnections();
+	void init();
 };
 
 #endif // IMAGECONTROLWIDGET_H
