@@ -192,7 +192,7 @@ void SelectableWidget::mouseMoveEvent(QMouseEvent *event) {
 				repaint();
 			} else if(selectedPointIndex_ >= 0) {
 				// Modifiers
-				bool keepCentered = (event->modifiers() & Qt::ShiftModifier) == 0;
+				bool keepCentered = (event->modifiers() & Qt::ShiftModifier) != 0;
 				bool keepRatio = (event->modifiers() & Qt::AltModifier) == 0;
 
 				moveSelectedPoint(keepRatio, keepCentered);

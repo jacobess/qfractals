@@ -211,7 +211,7 @@ void ImageControlWidget::updateSize() {
 
 
 void ImageControlWidget::setStarted() {
-	//qDebug("Receiving started");
+	qDebug("Receiving started");
 
 	cancelButton_->setText("Cancel");
 	disconnect(cancelButton_, 0, generator_, 0);
@@ -222,7 +222,7 @@ void ImageControlWidget::setStarted() {
 		refreshTimer_.start(Settings::settings()->refreshInterval());
 	}
 
-	progressBar_->setEnabled(generator_->isRunning());
+	progressBar_->setEnabled(true);
 }
 
 void ImageControlWidget::showEvent(QShowEvent *) {
@@ -249,8 +249,8 @@ void ImageControlWidget::updateProgress() {
 	progressBar_->setValue(progress);
 }
 
-void ImageControlWidget::setDone(bool cancelled) {
-	//qDebug("Received done-signal");
+void ImageControlWidget::setDone(bool) {
+	qDebug("Received done-signal");
 
 	cancelButton_->setText("Resume");
 
@@ -261,10 +261,6 @@ void ImageControlWidget::setDone(bool cancelled) {
 
 	updateTimer_.stop();
 	refreshTimer_.stop();
-
-	if(!cancelled) {
-		generator_->refresh();
-	}
 }
 
 void ImageControlWidget::setStatus(QString message) {

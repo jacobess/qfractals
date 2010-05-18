@@ -51,6 +51,7 @@
 #define OP_CONJ 0x20
 #define OP_RECT 0x21
 #define OP_POLAR 0x22
+#define OP_ABS 0x23
 
 #define OP_ADD_C 0x30
 #define OP_ADD_Z 0x31
@@ -261,6 +262,13 @@
 			T t = dr;						\
 			dr = dr * cos(di);					\
 			di = t * sin(di);					\
+			WT_DST((op) & 0xff, regs, dr, di)			\
+		} break;							\
+	case OP_ABS:								\
+		{								\
+			RD_SRC(((op) >> 8) & 0xff, regs, dr, di)		\
+			if(dr < 0) dr = -dr;					\
+			if(di < 0) di = -di;					\
 			WT_DST((op) & 0xff, regs, dr, di)			\
 		} break;							\
 	case OP_POLAR:								\

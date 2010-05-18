@@ -15,6 +15,9 @@ class MainWindow : public QMainWindow {
 
 	QAction* newMandelbrotAction;
 	QAction* newLambdaAction;
+	QAction* newTricornAction;
+	QAction* newBurningShipAction;
+	QAction* newMagnet1Action;
 	QAction* newPendulumAction;
 	QAction* saveImageAction;
 	QAction* closeAction;
@@ -37,9 +40,13 @@ private slots:
 
 	void newMandelbrot();
 	void newLambda();
+	void newTricorn();
+	void newBurningShip();
+	void newMagnet1();
 	void newPendulum();
+
 	void saveImage(int tab = -1);
-	void closeTab(int tab);
+	void closeTab(int tab = -1);
 
 	void addTab(Specification* spec);
 

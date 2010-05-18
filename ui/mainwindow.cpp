@@ -24,8 +24,21 @@ void MainWindow::init() {
 	newLambdaAction = newMenu->addAction("&Lambda");
 	connect(newLambdaAction, SIGNAL(triggered()), this, SLOT(newLambda()));
 
+	newLambdaAction = newMenu->addAction("&Tricorn");
+	connect(newLambdaAction, SIGNAL(triggered()), this, SLOT(newTricorn()));
+
+	newLambdaAction = newMenu->addAction("&BurningShip");
+	connect(newLambdaAction, SIGNAL(triggered()), this, SLOT(newBurningShip()));
+
+	newLambdaAction = newMenu->addAction("&Magnet1");
+	connect(newLambdaAction, SIGNAL(triggered()), this, SLOT(newMagnet1()));
+
+	newMenu->addSeparator();
+
 	newPendulumAction = newMenu->addAction("&Pendulum");
 	connect(newPendulumAction, SIGNAL(triggered()), this, SLOT(newPendulum()));
+
+	newMenu->addSeparator();
 
 	saveImageAction = fileMenu->addAction("&Save Image");
 	connect(saveImageAction, SIGNAL(triggered()), this, SLOT(saveImage()));
@@ -81,6 +94,20 @@ void MainWindow::newLambda() {
 	addTab(spec);
 }
 
+void MainWindow::newTricorn() {
+	Specification* spec = Settings::settings()->specifications()[QString("tricorn")];
+	addTab(spec);
+}
+
+void MainWindow::newBurningShip() {
+	Specification* spec = Settings::settings()->specifications()[QString("burning ship")];
+	addTab(spec);
+}
+
+void MainWindow::newMagnet1() {
+	Specification* spec = Settings::settings()->specifications()[QString("magnet1")];
+	addTab(spec);
+}
 void MainWindow::newPendulum() {
 	Specification* spec = Settings::settings()->specifications()[QString("pendulum")];
 	addTab(spec);

@@ -9,7 +9,7 @@ Settings* Settings::singleton_ = 0;
 Settings::Settings() :
 		threadCount_(4),
 		updateInterval_(175),
-		refreshInterval_(3000),
+		refreshInterval_(5000),
 		selectionRad_(7),
 		maxScaleFactor_(16),
 		scaleSliderTicks_(1024),
@@ -50,33 +50,31 @@ Settings::Settings() :
 }
 
 void Settings::initSpecs() {
-	// Mandelbrot Set
-
-	ColorPalette palette;
-	palette.a().add(0, 1);
-
-	palette.r().add(0, 0);
-	palette.g().add(0, 0);
-	palette.b().add(0, 0);
-
-	palette.r().add(26, 1);
-	palette.g().add(25, 0.6);
-	palette.b().add(24, 0.25);
-
-	palette.r().add(52, 1);
-	palette.g().add(50, 1);
-	palette.b().add(48, 1);
-
-	palette.r().add(78, 0.2);
-	palette.g().add(75, 0.2);
-	palette.b().add(72, 0.8);
-
-	palette.r().setPeriod(104);
-	palette.g().setPeriod(100);
-	palette.b().setPeriod(96);
-
         {
 		// Mandelbrot:
+		ColorPalette palette;
+		palette.a().add(0, 1);
+
+		palette.r().add(0, 0);
+		palette.g().add(0, 0);
+		palette.b().add(0, 0);
+
+		palette.r().add(26, 1);
+		palette.g().add(25, 0.6);
+		palette.b().add(24, 0.25);
+
+		palette.r().add(52, 1);
+		palette.g().add(50, 1);
+		palette.b().add(48, 1);
+
+		palette.r().add(78, 0.2);
+		palette.g().add(75, 0.2);
+		palette.b().add(72, 0.8);
+
+		palette.r().setPeriod(104);
+		palette.g().setPeriod(100);
+		palette.b().setPeriod(96);
+
 		QList< Interpreter<long double> > base;
 
 		Interpreter<long double> iteration;
@@ -96,6 +94,30 @@ void Settings::initSpecs() {
 
         {
 		// Lambda:
+
+		ColorPalette palette;
+		palette.a().add(0, 1);
+
+		palette.r().add(0, 0);
+		palette.g().add(0, 0);
+		palette.b().add(0, 0);
+
+		palette.r().add(26, 1);
+		palette.g().add(25, 0.6);
+		palette.b().add(24, 0.25);
+
+		palette.r().add(52, 1);
+		palette.g().add(50, 1);
+		palette.b().add(48, 1);
+
+		palette.r().add(78, 0.2);
+		palette.g().add(75, 0.2);
+		palette.b().add(72, 0.8);
+
+		palette.r().setPeriod(104);
+		palette.g().setPeriod(100);
+		palette.b().setPeriod(96);
+
 		QList< Interpreter<double> > base;
 
 		Interpreter<double> z0;
@@ -110,7 +132,7 @@ void Settings::initSpecs() {
 		iteration.addRROp(QString("mul_c"), -1, -1);
 
 		specifications_["lambda"] = new Mandelbrot<double>(
-				Transformation<double>(4, 0, 0, 4, -2, -2),
+				Transformation<double>(6, 0, 0, 6, -2, -3),
 				base,
 				iteration,
 				10240,
@@ -120,7 +142,30 @@ void Settings::initSpecs() {
         }
 
 	{
-		// TODO - find a quadratic formula
+		// Tricorn
+
+		ColorPalette palette;
+		palette.a().add(0, 1);
+
+		palette.r().add(0, 0);
+		palette.g().add(0, 0);
+		palette.b().add(0, 0);
+
+		palette.r().add(26, 1);
+		palette.g().add(25, 0.6);
+		palette.b().add(24, 0.25);
+
+		palette.r().add(52, 1);
+		palette.g().add(50, 1);
+		palette.b().add(48, 1);
+
+		palette.r().add(78, 0.2);
+		palette.g().add(75, 0.2);
+		palette.b().add(72, 0.8);
+
+		palette.r().setPeriod(104);
+		palette.g().setPeriod(100);
+		palette.b().setPeriod(96);
 		QList< Interpreter<double> > base;
 
 		Interpreter<double> iteration;
@@ -129,7 +174,7 @@ void Settings::initSpecs() {
 		iteration.addRROp(QString("sqr"), -1, -1);
 		iteration.addRROp(QString("add_c"), -1, -1);
 
-		specifications_["mandelbulb"] = new Mandelbrot<double>(
+		specifications_["tricorn"] = new Mandelbrot<double>(
 				Transformation<double>(4, 0, 0, 4, -2, -2),
 				base,
 				iteration,
@@ -140,7 +185,78 @@ void Settings::initSpecs() {
 	}
 
 	{
-		// TODO - find a quadratic formula
+		// Burning ship
+
+		ColorPalette palette;
+		palette.a().add(0, 1);
+
+		palette.r().add(0, 0);
+		palette.g().add(0, 0);
+		palette.b().add(0, 1);
+
+		palette.r().add(7, 1);
+		palette.g().add(7, 0);
+		palette.b().add(8, 0.5);
+
+		palette.r().add(14, 0.3);
+		palette.g().add(15, 1);
+		palette.b().add(16, 0);
+
+		palette.r().add(27, 1);
+		palette.g().add(28, 1);
+		palette.b().add(29, 1);
+
+		palette.r().add(40, 0);
+		palette.g().add(41, 0);
+		palette.b().add(42, 0);
+
+		palette.r().setPeriod(52);
+		palette.g().setPeriod(54);
+		palette.b().setPeriod(58);
+		QList< Interpreter<double> > base;
+
+		Interpreter<double> iteration;
+
+		iteration.addRROp(QString("abs"), -1, -1);
+		iteration.addRROp(QString("sqr"), -1, -1);
+		iteration.addRROp(QString("add_c"), -1, -1);
+
+		specifications_["burning ship"] = new Mandelbrot<double>(
+				Transformation<double>(4, 0, 0, 4, -2, -2),
+				base,
+				iteration,
+				10240,
+				2,
+				1e-6,
+				palette);
+	}
+
+
+	{
+		// magnet1
+		ColorPalette palette;
+		palette.a().add(0, 1);
+
+		palette.r().add(0, 1);
+		palette.g().add(0, 1);
+		palette.b().add(0, 1);
+
+		palette.r().add(13, 0);
+		palette.g().add(12, 0.4);
+		palette.b().add(11, 0.75);
+
+		palette.r().add(25, 0);
+		palette.g().add(26, 0);
+		palette.b().add(24, 0);
+
+		palette.r().add(34, 0.8);
+		palette.g().add(32, 0.8);
+		palette.b().add(30, 0.2);
+
+		palette.r().setPeriod(45);
+		palette.g().setPeriod(42);
+		palette.b().setPeriod(39);
+
 		QList< Interpreter<double> > base;
 
 		Interpreter<double> iteration;
@@ -152,19 +268,19 @@ void Settings::initSpecs() {
 		iteration.addRROp(QString("sqr"));
 		iteration.addRROp(QString("add_c"));
 		iteration.addRRROp("sub", up = iteration.addReg(), -1, one = iteration.addReg(1));
-		/*iteration.addROp(QString("z"));
+		iteration.addROp(QString("z"));
 		iteration.addRRROp(QString("mul"), -1, -1, two = iteration.addReg(2));
 		iteration.addRROp(QString("add_c"), -1, -1);
 		iteration.addRRROp(QString("sub"), -1, -1, two);
 		iteration.addRRROp(QString("div"), -1, up, -1);
-		iteration.addRROp(QString("sqr"));*/
+		iteration.addRROp(QString("sqr"));
 
 		specifications_["magnet1"] = new Mandelbrot<double>(
-				Transformation<double>(4, 0, 0, 4, -2, -2),
+				Transformation<double>(6, 0, 0, 6, -2, -3),
 				base,
 				iteration,
 				10240,
-				2,
+				16,
 				1e-6,
 				palette);
 	}
