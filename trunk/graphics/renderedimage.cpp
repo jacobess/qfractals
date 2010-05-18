@@ -2,6 +2,8 @@
 
 #include "math.h"
 
+#include <QTime>
+
 RenderedImage::RenderedImage(int width, int height, int aaDeg, const ColorProvider* colorProvider) :
 		width_(width),
 		height_(height),
@@ -136,6 +138,7 @@ void RenderedImage::select(double wx, double wy, double hx, double hy, double x0
 }
 
 void RenderedImage::refreshImage() {
+	// TODO This is very slow and takes more than 1 second
 	for(int y = 0; y < height_; y++) {
 		for(int x = 0; x < width_; x++) {
 			updatePix(x, y);
@@ -144,28 +147,35 @@ void RenderedImage::refreshImage() {
 }
 
 void RenderedImage::updatePix(int x, int y) {
-	int cnt = 0;
+	int incr = (width_ * y + x) * indicesPerPixel();
+	uchar* t = types_ + incr;
+	double* v = vals_ + incr;
 
 	double r = 0, g = 0, b = 0, a = 0;
+	int count = 0;
 
-	for(int i = 0; i < aaDeg_ * aaDeg_; i++) {
-		double r0, g0, b0, a0;
+	for(int i = 0; i < indicesPerPixel(); i++) {
+		if(*t != 0xff) {
+			count++;
 
-		if(pix(x, y, i, r0, g0, b0, a0)) {
+			double r0, g0, b0, a0;
+			colorProvider_->color(*t, *v, r0, g0, b0, a0);
+
 			r += r0;
 			g += g0;
 			b += b0;
 			a += a0;
-
-			cnt ++;
 		}
+
+		t++;
+		v++;
 	}
 
-	if(cnt > 0) {
-		r /= cnt;
-		g /= cnt;
-		b /= cnt;
-		a /= cnt;
+	if(count > 0) {
+		r /= count;
+		g /= count;
+		b /= count;
+		a /= count;
 
 		img_.setRgba(x, y, r, g, b, a);
 	}

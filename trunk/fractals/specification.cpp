@@ -10,6 +10,8 @@ Generator::Generator(int threadCount, bool isSelectable) :
 	for(int i = 0; i < threadCount; i++) {
 		threads_.push_back(new Thread(i, *this));
 	}
+
+	refreshThread_ = new RefreshThread(*this);
 }
 
 Generator::~Generator()
@@ -20,6 +22,8 @@ Generator::~Generator()
 	foreach(Thread* t, threads_) {
 		delete t;
 	}
+
+	delete refreshThread_;
 }
 
 const QImage& Generator::image() const {
@@ -42,19 +46,19 @@ int Generator::height() const {
 	return img().height();
 }
 
-qreal Generator::normX(qreal x) const {
+double Generator::normX(double x) const {
 	return img().normX(x);
 }
 
-qreal Generator::normY(qreal y) const {
+double Generator::normY(double y) const {
 	return img().normY(y);
 }
 
-qreal Generator::denormX(qreal x0) const {
+double Generator::denormX(double x0) const {
 	return img().denormX(x0);
 }
 
-qreal Generator::denormY(qreal y0) const {
+double Generator::denormY(double y0) const {
 	return img().denormY(y0);
 }
 
@@ -67,7 +71,6 @@ int Generator::threadCount() const {
 	return threads_.size();
 }
 
-
 void Generator::start() {
 	QMutexLocker locker(&threadMutex_);
 	isStopped_ = false;
@@ -76,16 +79,31 @@ void Generator::start() {
 
 void Generator::startUnsafe() {
 	if(!isStopped_) {
-		runningCount_ = threads_.size();
+		//qDebug("Start Unsafe");
+
+		//qDebug("SU: Running Count Set");
 
 		emit started();
 
+		qDebug("SU: Started-signal emitted");
+
 		init();
+
+		//qDebug("SU: Initialization done");
+
+		runningCountMutex_.lock();
 
 		for(int i = 0; i < threads_.size(); i++) {
 			threads_[i]->start();
 		}
+
+		runningCount_ = threads_.size();
+
+		runningCountMutex_.unlock();
+
+		//qDebug("SU: Threads started");
 	} else {
+		//qDebug("SU: Not starting since already stopped");
 		isStopped_ = false;
 	}
 }
@@ -103,33 +121,13 @@ void Generator::cancelWait() {
 void Generator::cancelWaitUnsafe() {
 	if(isRunning()) {
 		cancel();
-
-		foreach(Thread* t, threads_) {
-			t->wait();
-		}
-	}
-}
-
-void Generator::run(int i) {
-	if(!isStopped()) {
-		exec(i);
-	} else {
-		//qDebug("Do not execute thread %d since already stopped", i);
 	}
 
-	// TODO: Dead lock with other thread
-	QMutexLocker locker(&mutex_);
-	runningCount_ --;
-
-	if(runningCount_ == 0)
-	{
-		//qDebug("Last thread running, stopping");
-
-		emit done(isStopped_);
-
-		// So that new cancel-messages can be obtained
-		isStopped_ = false;
+	foreach(Thread* t, threads_) {
+		t->wait();
 	}
+
+	refreshThread_->wait();
 }
 
 bool Generator::isStopped() const {
@@ -137,7 +135,13 @@ bool Generator::isStopped() const {
 }
 
 void Generator::refresh() {
-	img().refreshImage();
+	if(!refreshThread_->isRunning()) {
+		refreshThread_->start(QThread::LowPriority);
+	}
+}
+
+void Generator::emitDoneSignal() {
+	emit done(isStopped_);
 }
 
 Thread::Thread(int index, Generator &parent) :
@@ -149,8 +153,35 @@ void Thread::run() {
 	QTime time;
 	time.start();
 
-	parent_.run(index_);
+	parent_.exec(index_);
+
+	QMutexLocker locker(&parent_.runningCountMutex_);
+
+	if(parent_.runningCount_ == 1)
+	{
+		qDebug("%d: Emitting done-signal", index_);
+
+		if(!parent_.isStopped_) {
+			parent_.refresh();
+			parent_.refreshThread_->wait();
+		}
+
+		parent_.emitDoneSignal();
+
+		qDebug("%d: Done-signal emitted", index_);
+
+		// So that new cancel-messages can be obtained
+		parent_.isStopped_ = false;
+	}
+
+	parent_.runningCount_ --;
 
 	qDebug("Thread %d finished after %d ms", index_, time.elapsed());
 }
 
+RefreshThread::RefreshThread(Generator &parent) :
+		parent_(parent) {}
+
+void RefreshThread::run() {
+	parent_.img().refreshImage();
+}

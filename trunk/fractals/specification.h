@@ -25,6 +25,13 @@ public:
 	void run(); // Calls execute in parent
 };
 
+class RefreshThread : public QThread {
+	Generator& parent_;
+public:
+	RefreshThread(Generator& parent);
+	void run();
+};
+
 class Generator : public QObject {
 	Q_OBJECT
 
@@ -35,8 +42,9 @@ class Generator : public QObject {
 	bool isSelectable_;
 
 	QList<Thread*> threads_;
+	QMutex runningCountMutex_;
 
-	QMutex mutex_;
+	RefreshThread* refreshThread_;
 
 public:
 	Generator(int threadCount, bool isSelectable);
@@ -112,11 +120,11 @@ protected:
 	virtual void exec(int index) = 0;
 
 	QMutex threadMutex_;
-
 private:
-	void run(int i);
+	void emitDoneSignal();
 
 friend class Thread;
+friend class RefreshThread;
 };
 
 #endif // SPECIFICATION_H
