@@ -6,17 +6,18 @@
 
 class ColorPalette
 {
-	Spline<float> a_;
-	Spline<float> r_;
-	Spline<float> g_;
-	Spline<float> b_;
-public:
-	void color(float x, float& r, float& g, float& b, float& a) const;
+	Spline<double> a_;
+	Spline<double> r_;
+	Spline<double> g_;
+	Spline<double> b_;
 
-	Spline<float>& r();
-	Spline<float>& g();
-	Spline<float>& b();
-	Spline<float>& a();
+public:
+	void color(double x, double& r, double& g, double& b, double& a) const;
+
+	Spline<double>& r();
+	Spline<double>& g();
+	Spline<double>& b();
+	Spline<double>& a();
 };
 
 #endif // COLORPALETTE_H

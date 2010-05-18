@@ -40,9 +40,9 @@ HEADERS += graphics/colorpalette.h \
     ui/resizedialog.h \
     fractals/pendulum.h \
     math/interpreter.h
-FORMS += 
+FORMS +=
 CONFIG += debug
-LIBS += -L/opt/local/lib/ \
-    -lgmpxx \
-    -lgmp
+#LIBS += -L/opt/local/lib/ \
+#    -lgmpxx \
+#    -lgmp
 INCLUDEPATH += /opt/local/include/

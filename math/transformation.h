@@ -1,7 +1,6 @@
 #ifndef TRANSFORMATION_H
 #define TRANSFORMATION_H
 
-#include <gmpxx.h>
 #include "sys/types.h"
 
 template <class T>

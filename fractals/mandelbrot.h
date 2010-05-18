@@ -13,7 +13,7 @@ template<class T>
 class MandelbrotEnv;
 
 template<class T>
-class Mandelbrot : public Rendering<T>, public ColorProvider
+class Mandelbrot : public Rendering<T>
 {
 	QList< Interpreter<T> > base_;
 	Interpreter<T> iteration_;
@@ -34,8 +34,9 @@ public:
 		   const ColorPalette& bailoutPalette);
 	virtual ~Mandelbrot();
 
-	void color(uchar type, float val,
-		   float& r, float& g, float& b, float& a) const;
+	void color(uchar type, int count, double value,
+		   double min, double max, double sum, double sqrSum,
+		   double& r, double& g, double& b, double& a) const;
 
 	RenderingGenerator<T>* createGenerator(int width, int height) const;
 
@@ -73,7 +74,7 @@ class MandelbrotEnv : public RenderingEnv<T> {
 public:
 	MandelbrotEnv(const Mandelbrot<T>& spec);
 	virtual ~MandelbrotEnv();
-	void calc(const T& x, const T& y, uchar& type, float& value);
+	void calc(const T& x, const T& y, uchar& type, double& value);
 };
 
 template<class T>
@@ -85,6 +86,10 @@ public:
 	virtual ~MandelbrotGenerator();
 
 	const Mandelbrot<T>& specification() const;
+
+	void color(uchar type, double value,
+		   double& r, double& g, double& b, double& a) const;
+
 protected:
 	Mandelbrot<T>& specification();
 };
