@@ -75,6 +75,12 @@ void Settings::initSpecs() {
 		palette.g().setPeriod(100);
 		palette.b().setPeriod(96);
 
+		ColorPalette black;
+		black.a().add(0, 1);
+		black.r().add(0, 0);
+		black.g().add(0, 0);
+		black.b().add(0, 0);
+
 		QList< Interpreter<long double> > base;
 
 		Interpreter<long double> iteration;
@@ -89,7 +95,8 @@ void Settings::initSpecs() {
 				10240,
 				2,
 				1e-6,
-				palette);
+				palette,
+				black);
         }
 
         {
@@ -97,26 +104,35 @@ void Settings::initSpecs() {
 
 		ColorPalette palette;
 		palette.a().add(0, 1);
+		palette.r().add(0, 1);
+		palette.g().add(0, 0.5);
+		palette.b().add(0, 0.25);
 
-		palette.r().add(0, 0);
-		palette.g().add(0, 0);
-		palette.b().add(0, 0);
+		palette.r().add(21, 0.5);
+		palette.g().add(20, 0.5);
+		palette.b().add(19, 1);
 
-		palette.r().add(26, 1);
-		palette.g().add(25, 0.6);
-		palette.b().add(24, 0.25);
+		palette.r().add(42, 0.5);
+		palette.g().add(40, 0.25);
+		palette.b().add(38, 0);
 
-		palette.r().add(52, 1);
-		palette.g().add(50, 1);
-		palette.b().add(48, 1);
+		palette.r().add(63, 1);
+		palette.g().add(60, 0);
+		palette.b().add(57, 0.25);
 
-		palette.r().add(78, 0.2);
-		palette.g().add(75, 0.2);
-		palette.b().add(72, 0.8);
+		palette.r().add(84, 1);
+		palette.g().add(80, 1);
+		palette.b().add(76, 1);
 
-		palette.r().setPeriod(104);
+		palette.r().setPeriod(105);
 		palette.g().setPeriod(100);
-		palette.b().setPeriod(96);
+		palette.b().setPeriod(95);
+
+		ColorPalette black;
+		black.a().add(0, 1);
+		black.r().add(0, 0);
+		black.g().add(0, 0);
+		black.b().add(0, 0);
 
 		QList< Interpreter<double> > base;
 
@@ -138,34 +154,47 @@ void Settings::initSpecs() {
 				10240,
 				2,
 				1e-6,
-				palette);
+				palette,
+				black);
         }
 
 	{
 		// Tricorn
 
 		ColorPalette palette;
+
 		palette.a().add(0, 1);
+		palette.r().add(0, 1);
+		palette.g().add(0, 1);
+		palette.b().add(0, 1);
 
-		palette.r().add(0, 0);
-		palette.g().add(0, 0);
-		palette.b().add(0, 0);
+		palette.r().add(21, 0);
+		palette.g().add(20, 0.5);
+		palette.b().add(19, 0);
 
-		palette.r().add(26, 1);
-		palette.g().add(25, 0.6);
-		palette.b().add(24, 0.25);
+		palette.r().add(42, 1);
+		palette.g().add(40, 1);
+		palette.b().add(38, 0);
 
-		palette.r().add(52, 1);
-		palette.g().add(50, 1);
-		palette.b().add(48, 1);
+		palette.r().add(63, 1);
+		palette.g().add(60, 0.5);
+		palette.b().add(57, 0);
 
-		palette.r().add(78, 0.2);
-		palette.g().add(75, 0.2);
-		palette.b().add(72, 0.8);
+		palette.r().add(84, 0);
+		palette.g().add(80, 0);
+		palette.b().add(76, 1);
 
-		palette.r().setPeriod(104);
+		palette.r().setPeriod(105);
 		palette.g().setPeriod(100);
-		palette.b().setPeriod(96);
+		palette.b().setPeriod(95);
+
+		ColorPalette black;
+		black.a().add(0, 1);
+		black.r().add(0, 0);
+		black.g().add(0, 0);
+		black.b().add(0, 0);
+
+
 		QList< Interpreter<double> > base;
 
 		Interpreter<double> iteration;
@@ -181,38 +210,46 @@ void Settings::initSpecs() {
 				10240,
 				2,
 				1e-6,
-				palette);
+				palette,
+				black);
 	}
 
 	{
 		// Burning ship
 
 		ColorPalette palette;
-		palette.a().add(0, 1);
 
+		palette.a().add(0, 1);
 		palette.r().add(0, 0);
 		palette.g().add(0, 0);
-		palette.b().add(0, 1);
+		palette.b().add(0, 0);
 
-		palette.r().add(7, 1);
-		palette.g().add(7, 0);
-		palette.b().add(8, 0.5);
+		palette.r().add(21, 1);
+		palette.g().add(20, 1);
+		palette.b().add(19, 0);
 
-		palette.r().add(14, 0.3);
-		palette.g().add(15, 1);
-		palette.b().add(16, 0);
+		palette.r().add(42, 1);
+		palette.g().add(40, 0);
+		palette.b().add(38, 1);
 
-		palette.r().add(27, 1);
-		palette.g().add(28, 1);
-		palette.b().add(29, 1);
+		palette.r().add(63, 0);
+		palette.g().add(60, 0);
+		palette.b().add(57, 1);
 
-		palette.r().add(40, 0);
-		palette.g().add(41, 0);
-		palette.b().add(42, 0);
+		palette.r().add(84, 1);
+		palette.g().add(80, 1);
+		palette.b().add(76, 1);
 
-		palette.r().setPeriod(52);
-		palette.g().setPeriod(54);
-		palette.b().setPeriod(58);
+		palette.r().setPeriod(105);
+		palette.g().setPeriod(100);
+		palette.b().setPeriod(95);
+
+		ColorPalette black;
+		black.a().add(0, 1);
+		black.r().add(0, 0);
+		black.g().add(0, 0);
+		black.b().add(0, 0);
+
 		QList< Interpreter<double> > base;
 
 		Interpreter<double> iteration;
@@ -228,7 +265,8 @@ void Settings::initSpecs() {
 				10240,
 				2,
 				1e-6,
-				palette);
+				palette,
+				black);
 	}
 
 
@@ -241,21 +279,48 @@ void Settings::initSpecs() {
 		palette.g().add(0, 1);
 		palette.b().add(0, 1);
 
-		palette.r().add(13, 0);
-		palette.g().add(12, 0.4);
-		palette.b().add(11, 0.75);
+		palette.r().add(26, 0);
+		palette.g().add(25, 0.4);
+		palette.b().add(24, 0.75);
 
-		palette.r().add(25, 0);
-		palette.g().add(26, 0);
-		palette.b().add(24, 0);
+		palette.r().add(52, 0);
+		palette.g().add(50, 0);
+		palette.b().add(48, 0);
 
-		palette.r().add(34, 0.8);
-		palette.g().add(32, 0.8);
-		palette.b().add(30, 0.2);
+		palette.r().add(78, 0.8);
+		palette.g().add(75, 0.8);
+		palette.b().add(72, 0.2);
 
-		palette.r().setPeriod(45);
-		palette.g().setPeriod(42);
-		palette.b().setPeriod(39);
+		palette.r().setPeriod(104);
+		palette.g().setPeriod(100);
+		palette.b().setPeriod(96);
+
+		ColorPalette epsPalette;
+
+		epsPalette.a().add(0, 1);
+		epsPalette.r().add(0, 0);
+		epsPalette.g().add(0, 0);
+		epsPalette.b().add(0, 0.5);
+
+		epsPalette.r().add(21, 0.75);
+		epsPalette.g().add(20, 0.5);
+		epsPalette.b().add(19, 0);
+
+		epsPalette.r().add(42, 1);
+		epsPalette.g().add(40, 1);
+		epsPalette.b().add(38, 1);
+
+		epsPalette.r().add(63, 0);
+		epsPalette.g().add(60, 0);
+		epsPalette.b().add(57, 0);
+
+		epsPalette.r().add(84, 0);
+		epsPalette.g().add(80, 0.75);
+		epsPalette.b().add(76, 0);
+
+		epsPalette.r().setPeriod(105);
+		epsPalette.g().setPeriod(100);
+		epsPalette.b().setPeriod(95);
 
 		QList< Interpreter<double> > base;
 
@@ -282,7 +347,8 @@ void Settings::initSpecs() {
 				10240,
 				16,
 				1e-6,
-				palette);
+				palette,
+				epsPalette);
 	}
 
         {

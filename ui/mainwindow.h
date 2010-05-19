@@ -23,6 +23,7 @@ class MainWindow : public QMainWindow {
 	QAction* closeAction;
 
 	QMenu* settingsMenu;
+	QMenu* navigationMenu;
 	QAction* browseAction;
 	QAction* selectAction;
 

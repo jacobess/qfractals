@@ -99,7 +99,7 @@
 
 
 // TODO template T!
-#define INTERPRET(op, dr, di, cr, ci, zr, zi, n, xs, ys, regs)			\
+#define INTERPRET(T, op, dr, di, cr, ci, zr, zi, n, xs, ys, regs)			\
 	switch(op >> 24) {							\
 	case OP_ADD:								\
 		{								\
@@ -140,7 +140,7 @@
 			T sr = dr, si = di;					\
 			RD_SRC(((op) >> 8) & 0xff, regs, dr, di)		\
 			RD_SRC(((op) >> 16) & 0xff, regs, sr, si)		\
-			MULT(dr, sr, di, -si);					\
+			MULT(dr, sr, di, -si)				\
 			T abs = sr * sr + si * si;				\
 			dr /= abs; di /= abs;					\
 			WT_DST((op) & 0xff, regs, dr, di)			\
@@ -148,7 +148,7 @@
 	case OP_SQR:								\
 		{								\
 			RD_SRC(((op) >> 8) & 0xff, regs, dr, di)		\
-			MULT(dr, dr, di, di);					\
+			MULT(dr, dr, di, di)				\
 			WT_DST((op) & 0xff, regs, dr, di)			\
 		} break;							\
 	case OP_POW_INT:							\
@@ -183,13 +183,13 @@
 	case OP_LAMBDA:								\
 		{								\
 			RD_SRC(((op) >> 8) & 0xff, regs, dr, di)		\
-			MULT(dr, (1 - dr), di, -di);				\
+			MULT(dr, (1 - dr), di, -di)			\
 			WT_DST((op) & 0xff, regs, dr, di)			\
 		} break;							\
 	case OP_SQRT:								\
 		{								\
 			RD_SRC(((op) >> 8) & 0xff, regs, dr, di)		\
-			MULT(dr, dr, di, di);					\
+			MULT(dr, dr, di, di)					\
 			WT_DST((op) & 0xff, regs, dr, di)			\
 		} break;							\
 	case OP_NEG:								\
@@ -294,13 +294,13 @@
 	case OP_MUL_C:								\
 		{								\
 			RD_SRC(((op) >> 8) & 0xff, regs, dr, di)		\
-			MULT(dr, cr, di, ci);					\
+			MULT(dr, cr, di, ci)					\
 			WT_DST((op) & 0xff, regs, dr, di)			\
 		} break;							\
 	case OP_MUL_Z:								\
 		{								\
 			RD_SRC(((op) >> 8) & 0xff, regs, dr, di)		\
-			MULT(dr, zr, di, zi);					\
+			MULT(dr, zr, di, zi)					\
 			WT_DST((op) & 0xff, regs, dr, di)			\
 		} break;							\
 	case OP_RE:								\
