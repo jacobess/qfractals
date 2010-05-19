@@ -8,14 +8,16 @@ Mandelbrot<T>::Mandelbrot(const Transformation<T>& t,
 			  int maxIterations,
 			  const T& bailout,
 			  const T& epsilon,
-			  const ColorPalette& bailoutPalette) :
+			  const ColorPalette& bailoutPalette,
+			  const ColorPalette& epsilonPalette) :
 		Rendering<T>(t),
 		base_(base),
 		iteration_(iteration),
 		maxIterations_(maxIterations),
 		bailout_(bailout),
 		epsilon_(epsilon),
-		bailoutPalette_(bailoutPalette) {}
+		bailoutPalette_(bailoutPalette),
+		epsilonPalette_(epsilonPalette) {}
 
 template<class T>
 Mandelbrot<T>::~Mandelbrot() {}
@@ -82,6 +84,15 @@ ColorPalette& Mandelbrot<T>::bailoutPalette() {
 	return bailoutPalette_;
 }
 
+template<class T>
+const ColorPalette& Mandelbrot<T>::epsilonPalette() const {
+	return epsilonPalette_;
+}
+
+template<class T>
+ColorPalette& Mandelbrot<T>::epsilonPalette() {
+	return epsilonPalette_;
+}
 
 template<class T>
 RenderingGenerator<T>* Mandelbrot<T>::createGenerator(int width, int height) const {
@@ -92,8 +103,6 @@ template<class T>
 RenderingEnv<T>* Mandelbrot<T>::createEnv() const {
 	return new MandelbrotEnv<T>(*this);
 }
-
-
 
 template<class T>
 MandelbrotEnv<T>::MandelbrotEnv(const Mandelbrot<T>& spec) :
@@ -161,7 +170,7 @@ void MandelbrotEnv<T>::calc(const T& x, const T& y, uchar& type, double& value) 
 
 		for(int j = 0; j < count; j++) {
 			unsigned int op = ops[j];
-			INTERPRET(op, nr, ni, cr, ci, zr, zi, i, xs_, ys_, regs);
+			INTERPRET(T, op, nr, ni, cr, ci, zr, zi, i, xs_, ys_, regs)
 		}
 
 		(*xn) = nr;
@@ -194,8 +203,8 @@ void MandelbrotEnv<T>::calc(const T& x, const T& y, uchar& type, double& value) 
 
 			n_ = i + 1;
 
-			type = 0;
-			value = 0;
+			type = 2;
+			value = i + 1;
 
 			return;
 		}
@@ -233,12 +242,14 @@ Mandelbrot<T>& MandelbrotGenerator<T>::specification() {
 template<class T>
 void MandelbrotGenerator<T>::color(uchar type, double value,
 			  double& r, double& g, double& b, double& a) const {
-	if(type == 1) {
-		if(value > 2.7183) {
-			value /= log(value);
-		}
+	if(value > 2.7183) {
+		value /= log(value);
+	}
 
+	if(type == 1) {
 		spec_.bailoutPalette().color(value, r, g, b, a);
+	} else if(type == 2) {
+		spec_.epsilonPalette().color(value, r, g, b, a);
 	} else {
 		r = g = b = 0;
 		a = 1;

@@ -24,6 +24,7 @@ class Mandelbrot : public Rendering<T>
 	T epsilon_;
 
 	ColorPalette bailoutPalette_;
+	ColorPalette epsilonPalette_;
 public:
 	Mandelbrot(const Transformation<T>& t,
 		   const QList< Interpreter<T> >& base,
@@ -31,7 +32,8 @@ public:
 		   int maxIterations,
 		   const T& bailout,
 		   const T& epsilon,
-		   const ColorPalette& bailoutPalette);
+		   const ColorPalette& bailoutPalette,
+		   const ColorPalette& epsilonPalette);
 	virtual ~Mandelbrot();
 
 	void color(uchar type, int count, double value,
@@ -59,6 +61,9 @@ public:
 
 	const ColorPalette& bailoutPalette() const;
 	ColorPalette& bailoutPalette();
+
+	const ColorPalette& epsilonPalette() const;
+	ColorPalette& epsilonPalette();
 };
 
 template<class T>

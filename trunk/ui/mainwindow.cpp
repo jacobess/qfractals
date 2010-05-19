@@ -47,10 +47,12 @@ void MainWindow::init() {
 	connect(closeAction, SIGNAL(triggered()), this, SLOT(closeTab()));
 
 	settingsMenu = menuBar()->addMenu(tr("&Settings"));
-	browseAction = settingsMenu->addAction(tr("&Browse"));
+	navigationMenu = settingsMenu->addMenu(tr("&Navigation Mode"));
+
+	browseAction = navigationMenu->addAction(tr("&Browse"));
 	connect(browseAction, SIGNAL(triggered(bool)), this, SLOT(browseMode(bool)));
 
-	selectAction = settingsMenu->addAction(tr("&Select"));
+	selectAction = navigationMenu->addAction(tr("&Select"));
 	connect(selectAction, SIGNAL(triggered(bool)), this, SLOT(selectMode(bool)));
 
 	browseAction->setCheckable(true);
