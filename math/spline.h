@@ -1,39 +1,40 @@
 #ifndef SPLINE_H
 #define SPLINE_H
 
-#include<QVarLengthArray>
+#include <QList>
+#include <QVarLengthArray>
+
+#include <math.h>
 
 
-template<class T>
 class Spline {
-	T period_;
+	double period_;
 
-        QVarLengthArray<T> xs;
-        QVarLengthArray<T> ys;
+	QList<double> x_;
+	QList<double> y_;// == ys
+
+	QVarLengthArray<double> a_;
+	QVarLengthArray<double> b_;
+	QVarLengthArray<double> c_;
 
 public:
 
-	Spline(T period = 0);
+	Spline(double period = INFINITY);
 
-	T mod(T x, int* pIndex = 0) const;
-
-	void find(T x, int& l, int& r) const;
-
-	T operator()(T x) const;
-
-	T x(int i) const;
-	T y(int i) const;
-
-	int add(T x, T y);
-	int set(int i, T x, T y);
-	T erase(int i);
+	double operator()(double x) const;
 	int size() const;
-	bool isEmpty() const;
 
-	void setPeriod(T period);
+	void add(double x, double y);
+	void setPeriod(double period);
+private:
+	void find(double x, int& left, int& right) const;
+	double mod(double x) const;
+	int md(int i) const;
 
-protected:
-	int modIndex(int i, int* pIndex = 0) const;
+	void initSpline();
+	void createSubSpline(int l, int r);
+
+	double x(int i) const;
 };
 
 #endif // SPLINE_H

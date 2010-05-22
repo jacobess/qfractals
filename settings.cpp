@@ -53,33 +53,19 @@ void Settings::initSpecs() {
         {
 		// Mandelbrot:
 		ColorPalette palette;
-		palette.a().add(0, 1);
 
-		palette.r().add(0, 0);
-		palette.g().add(0, 0);
-		palette.b().add(0, 0);
+		double p = 1;
 
-		palette.r().add(26, 1);
-		palette.g().add(25, 0.6);
-		palette.b().add(24, 0.25);
+		palette.setPeriod(p);
+		palette.addColor(28 * p / 400., 0x00 / 255., 0x07 / 255., 0x64 / 255.);  // 00 07 64
+		palette.addColor(92 * p / 400., 0x20 / 255., 0x6b / 255., 0xcb / 255.);  // 20 6b cb
+		palette.addColor(196 * p / 400., 0xed / 255., 0xff / 255., 0xff / 255.); // ed ff ff
+		palette.addColor(285 * p / 400., 0xff / 255., 0xaa / 255., 0x00 / 255.); // ff aa 00
+		palette.addColor(371 * p / 400., 0x31 / 255., 0x02 / 255., 0x30 / 255.); // 31 02 30
 
-		palette.r().add(52, 1);
-		palette.g().add(50, 1);
-		palette.b().add(48, 1);
+		ColorPalette epsPalette;
 
-		palette.r().add(78, 0.2);
-		palette.g().add(75, 0.2);
-		palette.b().add(72, 0.8);
-
-		palette.r().setPeriod(104);
-		palette.g().setPeriod(100);
-		palette.b().setPeriod(96);
-
-		ColorPalette black;
-		black.a().add(0, 1);
-		black.r().add(0, 0);
-		black.g().add(0, 0);
-		black.b().add(0, 0);
+		epsPalette.addColor(0, 0, 0, 0);
 
 		QList< Interpreter<long double> > base;
 
@@ -89,50 +75,34 @@ void Settings::initSpecs() {
 		iteration.addRROp(QString("add_c"), -1, -1);
 
 		specifications_["mandelbrot"] = new Mandelbrot<long double>(
-				Transformation<long double>(4, 0, 0, 4, -2, -2),
+				Transformation<long double>(2.6, 0, 0, 2.6, -2, -1.3),
 				base,
 				iteration,
 				10240,
-				2,
+				65536,
 				1e-6,
 				palette,
-				black);
+				epsPalette);
         }
 
         {
 		// Lambda:
 
 		ColorPalette palette;
-		palette.a().add(0, 1);
-		palette.r().add(0, 1);
-		palette.g().add(0, 0.5);
-		palette.b().add(0, 0.25);
 
-		palette.r().add(21, 0.5);
-		palette.g().add(20, 0.5);
-		palette.b().add(19, 1);
 
-		palette.r().add(42, 0.5);
-		palette.g().add(40, 0.25);
-		palette.b().add(38, 0);
+		double p = 1;
 
-		palette.r().add(63, 1);
-		palette.g().add(60, 0);
-		palette.b().add(57, 0.25);
+		palette.setPeriod(p);
+		palette.addColor(28 * p / 400., 0x00 / 255., 0x07 / 255., 0x64 / 255.);  // 00 07 64
+		palette.addColor(92 * p / 400., 0x20 / 255., 0x6b / 255., 0xcb / 255.);  // 20 6b cb
+		palette.addColor(196 * p / 400., 0xed / 255., 0xff / 255., 0xff / 255.); // ed ff ff
+		palette.addColor(285 * p / 400., 0xff / 255., 0xaa / 255., 0x00 / 255.); // ff aa 00
+		palette.addColor(371 * p / 400., 0x31 / 255., 0x02 / 255., 0x30 / 255.); // 31 02 30
 
-		palette.r().add(84, 1);
-		palette.g().add(80, 1);
-		palette.b().add(76, 1);
+		ColorPalette epsPalette;
 
-		palette.r().setPeriod(105);
-		palette.g().setPeriod(100);
-		palette.b().setPeriod(95);
-
-		ColorPalette black;
-		black.a().add(0, 1);
-		black.r().add(0, 0);
-		black.g().add(0, 0);
-		black.b().add(0, 0);
+		epsPalette.addColor(0, 0, 0, 0);
 
 		QList< Interpreter<double> > base;
 
@@ -155,7 +125,7 @@ void Settings::initSpecs() {
 				2,
 				1e-6,
 				palette,
-				black);
+				epsPalette);
         }
 
 	{
@@ -163,36 +133,19 @@ void Settings::initSpecs() {
 
 		ColorPalette palette;
 
-		palette.a().add(0, 1);
-		palette.r().add(0, 1);
-		palette.g().add(0, 1);
-		palette.b().add(0, 1);
 
-		palette.r().add(21, 0);
-		palette.g().add(20, 0.5);
-		palette.b().add(19, 0);
+		double p = 1;
 
-		palette.r().add(42, 1);
-		palette.g().add(40, 1);
-		palette.b().add(38, 0);
+		palette.setPeriod(p);
+		palette.addColor(28 * p / 400., 0x00 / 255., 0x07 / 255., 0x64 / 255.);  // 00 07 64
+		palette.addColor(92 * p / 400., 0x20 / 255., 0x6b / 255., 0xcb / 255.);  // 20 6b cb
+		palette.addColor(196 * p / 400., 0xed / 255., 0xff / 255., 0xff / 255.); // ed ff ff
+		palette.addColor(285 * p / 400., 0xff / 255., 0xaa / 255., 0x00 / 255.); // ff aa 00
+		palette.addColor(371 * p / 400., 0x31 / 255., 0x02 / 255., 0x30 / 255.); // 31 02 30
 
-		palette.r().add(63, 1);
-		palette.g().add(60, 0.5);
-		palette.b().add(57, 0);
+		ColorPalette epsPalette;
 
-		palette.r().add(84, 0);
-		palette.g().add(80, 0);
-		palette.b().add(76, 1);
-
-		palette.r().setPeriod(105);
-		palette.g().setPeriod(100);
-		palette.b().setPeriod(95);
-
-		ColorPalette black;
-		black.a().add(0, 1);
-		black.r().add(0, 0);
-		black.g().add(0, 0);
-		black.b().add(0, 0);
+		epsPalette.addColor(0, 0, 0, 0);
 
 
 		QList< Interpreter<double> > base;
@@ -208,10 +161,10 @@ void Settings::initSpecs() {
 				base,
 				iteration,
 				10240,
-				2,
+				65536,
 				1e-6,
 				palette,
-				black);
+				epsPalette);
 	}
 
 	{
@@ -219,36 +172,19 @@ void Settings::initSpecs() {
 
 		ColorPalette palette;
 
-		palette.a().add(0, 1);
-		palette.r().add(0, 0);
-		palette.g().add(0, 0);
-		palette.b().add(0, 0);
 
-		palette.r().add(21, 1);
-		palette.g().add(20, 1);
-		palette.b().add(19, 0);
+		double p = 1;
 
-		palette.r().add(42, 1);
-		palette.g().add(40, 0);
-		palette.b().add(38, 1);
+		palette.setPeriod(p);
+		palette.addColor(28 * p / 400., 0x00 / 255., 0x07 / 255., 0x64 / 255.);  // 00 07 64
+		palette.addColor(92 * p / 400., 0x20 / 255., 0x6b / 255., 0xcb / 255.);  // 20 6b cb
+		palette.addColor(196 * p / 400., 0xed / 255., 0xff / 255., 0xff / 255.); // ed ff ff
+		palette.addColor(285 * p / 400., 0xff / 255., 0xaa / 255., 0x00 / 255.); // ff aa 00
+		palette.addColor(371 * p / 400., 0x31 / 255., 0x02 / 255., 0x30 / 255.); // 31 02 30
 
-		palette.r().add(63, 0);
-		palette.g().add(60, 0);
-		palette.b().add(57, 1);
+		ColorPalette epsPalette;
 
-		palette.r().add(84, 1);
-		palette.g().add(80, 1);
-		palette.b().add(76, 1);
-
-		palette.r().setPeriod(105);
-		palette.g().setPeriod(100);
-		palette.b().setPeriod(95);
-
-		ColorPalette black;
-		black.a().add(0, 1);
-		black.r().add(0, 0);
-		black.g().add(0, 0);
-		black.b().add(0, 0);
+		epsPalette.addColor(0, 0, 0, 0);
 
 		QList< Interpreter<double> > base;
 
@@ -263,64 +199,36 @@ void Settings::initSpecs() {
 				base,
 				iteration,
 				10240,
-				2,
+				65536,
 				1e-6,
 				palette,
-				black);
+				epsPalette);
 	}
 
 
 	{
 		// magnet1
 		ColorPalette palette;
-		palette.a().add(0, 1);
 
-		palette.r().add(0, 1);
-		palette.g().add(0, 1);
-		palette.b().add(0, 1);
+		double p = 1;
 
-		palette.r().add(26, 0);
-		palette.g().add(25, 0.4);
-		palette.b().add(24, 0.75);
-
-		palette.r().add(52, 0);
-		palette.g().add(50, 0);
-		palette.b().add(48, 0);
-
-		palette.r().add(78, 0.8);
-		palette.g().add(75, 0.8);
-		palette.b().add(72, 0.2);
-
-		palette.r().setPeriod(104);
-		palette.g().setPeriod(100);
-		palette.b().setPeriod(96);
+		palette.setPeriod(p);
+		palette.addColor(28 * p / 400., 0x00 / 255., 0x07 / 255., 0x64 / 255.);  // 00 07 64
+		palette.addColor(92 * p / 400., 0x20 / 255., 0x6b / 255., 0xcb / 255.);  // 20 6b cb
+		palette.addColor(196 * p / 400., 0xed / 255., 0xff / 255., 0xff / 255.); // ed ff ff
+		palette.addColor(285 * p / 400., 0xff / 255., 0xaa / 255., 0x00 / 255.); // ff aa 00
+		palette.addColor(371 * p / 400., 0x31 / 255., 0x02 / 255., 0x30 / 255.); // 31 02 30
 
 		ColorPalette epsPalette;
 
-		epsPalette.a().add(0, 1);
-		epsPalette.r().add(0, 0);
-		epsPalette.g().add(0, 0);
-		epsPalette.b().add(0, 0.5);
+		p = 10;
 
-		epsPalette.r().add(21, 0.75);
-		epsPalette.g().add(20, 0.5);
-		epsPalette.b().add(19, 0);
-
-		epsPalette.r().add(42, 1);
-		epsPalette.g().add(40, 1);
-		epsPalette.b().add(38, 1);
-
-		epsPalette.r().add(63, 0);
-		epsPalette.g().add(60, 0);
-		epsPalette.b().add(57, 0);
-
-		epsPalette.r().add(84, 0);
-		epsPalette.g().add(80, 0.75);
-		epsPalette.b().add(76, 0);
-
-		epsPalette.r().setPeriod(105);
-		epsPalette.g().setPeriod(100);
-		epsPalette.b().setPeriod(95);
+		epsPalette.setPeriod(p);
+		epsPalette.addColor(28 * p / 400., 1 - 0x00 / 255., 1 - 0x07 / 255., 1 - 0x64 / 255.);  // 00 07 64
+		epsPalette.addColor(92 * p / 400., 1 - 0x20 / 255., 1 - 0x6b / 255., 1 - 0xcb / 255.);  // 20 6b cb
+		epsPalette.addColor(196 * p / 400., 1 - 0xed / 255., 1 - 0xff / 255., 1 - 0xff / 255.); // ed ff ff
+		epsPalette.addColor(285 * p / 400., 1 - 0xff / 255., 1 - 0xaa / 255., 1 - 0x00 / 255.); // ff aa 00
+		epsPalette.addColor(371 * p / 400., 1 - 0x31 / 255., 1 - 0x02 / 255., 1 - 0x30 / 255.); // 31 02 30
 
 		QList< Interpreter<double> > base;
 
@@ -367,19 +275,9 @@ void Settings::initSpecs() {
 
 			QColor color = QColor::fromHsvF(hues[i], 1, 1);
 
-			p.a().add(0, 1);
-
-			p.r().add(0, 1);
-			p.g().add(0, 1);
-			p.b().add(0, 1);
-
-			p.r().add(0.5, color.redF());
-			p.g().add(0.5, color.greenF());
-			p.b().add(0.5, color.blueF());
-
-			p.r().add(1, 0);
-			p.g().add(1, 0);
-			p.b().add(1, 0);
+			p.addColor(0, 1, 1, 1);
+			p.addColor(0.5, color.redF(), color.greenF(), color.blueF());
+			p.addColor(1, 0, 0, 0);
 
 			Magnet<double> m(2 * sin(i * 2 * M_PI / max), 2 * cos(i * 2 * M_PI / max), 0.0667, p);
 

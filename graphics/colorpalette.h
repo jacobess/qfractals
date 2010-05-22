@@ -6,18 +6,18 @@
 
 class ColorPalette
 {
-	Spline<double> a_;
-	Spline<double> r_;
-	Spline<double> g_;
-	Spline<double> b_;
-
+	Spline opacity_; // alpha
+	Spline channels_[3];
 public:
-	void color(double x, double& r, double& g, double& b, double& a) const;
+	// Modify palette
+	void addColor(double x, double r, double g, double b);
 
-	Spline<double>& r();
-	Spline<double>& g();
-	Spline<double>& b();
-	Spline<double>& a();
+	void addChannelColor(int channel, double x, double c);
+
+	void setPeriod(double p);
+	void setChannelPeriod(int channel, double p);
+
+	void color(double x, double& r, double& g, double& b, double& a) const;
 };
 
 #endif // COLORPALETTE_H

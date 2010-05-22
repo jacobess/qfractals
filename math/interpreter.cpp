@@ -27,6 +27,7 @@ Interpreter<T>::Interpreter() {
 	rrOpTable_[QString("rect")] =  OP_RECT;
 	rrOpTable_[QString("polar")] =  OP_POLAR;
 	rrOpTable_[QString("abs")] =  OP_ABS;
+	rrOpTable_[QString("floor")] =  OP_FLOOR;
 
 	rrOpTable_[QString("add_c")] =  OP_ADD_C;
 	rrOpTable_[QString("add_z")] =  OP_ADD_Z;

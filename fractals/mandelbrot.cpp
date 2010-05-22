@@ -172,7 +172,6 @@ void MandelbrotEnv<T>::calc(const T& x, const T& y, uchar& type, double& value) 
 			unsigned int op = ops[j];
 			INTERPRET(T, op, nr, ni, cr, ci, zr, zi, i, xs_, ys_, regs)
 		}
-
 		(*xn) = nr;
 		(*yn) = ni;
 
@@ -242,15 +241,15 @@ Mandelbrot<T>& MandelbrotGenerator<T>::specification() {
 template<class T>
 void MandelbrotGenerator<T>::color(uchar type, double value,
 			  double& r, double& g, double& b, double& a) const {
-	if(value > 2.7183) {
-		value /= log(value);
-	}
+
+	value = log(value);
 
 	if(type == 1) {
 		spec_.bailoutPalette().color(value, r, g, b, a);
 	} else if(type == 2) {
 		spec_.epsilonPalette().color(value, r, g, b, a);
 	} else {
+		// TODO Lake-palette
 		r = g = b = 0;
 		a = 1;
 	}

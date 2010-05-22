@@ -211,6 +211,8 @@ void ImageControlWidget::updateSize() {
 
 
 void ImageControlWidget::setStarted() {
+	// Synch with running flag
+
 	qDebug("Receiving started");
 
 	cancelButton_->setText("Cancel");
@@ -225,7 +227,27 @@ void ImageControlWidget::setStarted() {
 	progressBar_->setEnabled(true);
 }
 
+void ImageControlWidget::setDone(bool) {
+	// Synch with running flag
+
+	qDebug("Received done-signal");
+
+	cancelButton_->setText("Resume");
+
+	progressBar_->setEnabled(false);
+
+	disconnect(cancelButton_, 0, generator_, 0);
+	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(start()));
+
+	QMutexLocker locker();
+
+	updateTimer_.stop();
+	refreshTimer_.stop();
+}
+
 void ImageControlWidget::showEvent(QShowEvent *) {
+	// Synch with running flag
+
 	if(generator_->isRunning()) {
 		updateTimer_.start(Settings::settings()->updateInterval());
 		refreshTimer_.start(Settings::settings()->refreshInterval());
@@ -233,6 +255,8 @@ void ImageControlWidget::showEvent(QShowEvent *) {
 }
 
 void ImageControlWidget::hideEvent(QHideEvent *) {
+	// Synch with running flag
+
 	updateTimer_.stop();
 	refreshTimer_.stop();
 }
@@ -247,20 +271,6 @@ void ImageControlWidget::updateProgress() {
 	}
 
 	progressBar_->setValue(progress);
-}
-
-void ImageControlWidget::setDone(bool) {
-	qDebug("Received done-signal");
-
-	cancelButton_->setText("Resume");
-
-	progressBar_->setEnabled(false);
-
-	disconnect(cancelButton_, 0, generator_, 0);
-	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(start()));
-
-	updateTimer_.stop();
-	refreshTimer_.stop();
 }
 
 void ImageControlWidget::setStatus(QString message) {

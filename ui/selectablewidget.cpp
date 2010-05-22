@@ -169,7 +169,7 @@ void SelectableWidget::mousePressEvent(QMouseEvent *event) {
 }
 
 void SelectableWidget::mouseMoveEvent(QMouseEvent *event) {
-	if(event->buttons() & Qt::LeftButton != 0) {
+	if((event->buttons() & Qt::LeftButton) != 0) {
 		if(hasSelection_ == BROWSE_MODE) {
 			p1_ = toImg(event->posF());
 
