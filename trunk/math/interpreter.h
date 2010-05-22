@@ -52,6 +52,7 @@
 #define OP_RECT 0x21
 #define OP_POLAR 0x22
 #define OP_ABS 0x23
+#define OP_FLOOR 0x24
 
 #define OP_ADD_C 0x30
 #define OP_ADD_Z 0x31
@@ -277,6 +278,13 @@
 			T t = atan2(di, dr);					\
 			dr = sqrt(dr * dr + di * di);				\
 			di = t;							\
+			WT_DST((op) & 0xff, regs, dr, di)			\
+		} break;							\
+	case OP_FLOOR:								\
+		{								\
+			RD_SRC(((op) >> 8) & 0xff, regs, dr, di)		\
+			dr = floor(dr);						\
+			di = floor(di);						\
 			WT_DST((op) & 0xff, regs, dr, di)			\
 		} break;							\
 	case OP_ADD_C:								\
