@@ -37,7 +37,7 @@ class ImageControlWidget : public QWidget
 
 	QThreadPool refreshPool_;
 
-	bool isRunning_;
+	int runningIndex_;
 	QMutex mutex_;
 
 public:
@@ -60,8 +60,8 @@ private slots:
 
 	void changeScale(int i);
 
-	void setStarted();
-	void setDone();
+	void setExecutionStarted(int index);
+	void setExecutionStopped(int index);
 
 	void updateProgress();
 	void setStatus(QString message);
