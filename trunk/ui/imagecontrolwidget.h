@@ -2,6 +2,9 @@
 #define IMAGECONTROLWIDGET_H
 
 #include <QtGui>
+#include <QThreadPool>
+#include <QRunnable>
+
 #include "selectablewidget.h"
 #include "fractals/specification.h"
 
@@ -32,9 +35,16 @@ class ImageControlWidget : public QWidget
 	QTimer updateTimer_;
 	QTimer refreshTimer_;
 
+	QThreadPool refreshPool_;
+
+	bool isRunning_;
+	QMutex mutex_;
+
 public:
-	ImageControlWidget(QWidget* parent, Specification* spec);
+	ImageControlWidget(QWidget* parent, const Specification& spec);
 	~ImageControlWidget();
+
+	const Specification& specification() const;
 
 public slots:
 	void saveImage();
@@ -51,13 +61,24 @@ private slots:
 	void changeScale(int i);
 
 	void setStarted();
+	void setDone();
+
 	void updateProgress();
-	void setDone(bool cancelled);
 	void setStatus(QString message);
 	void showResizeDialog();
+	void refreshBackground();
 
 private:
 	void init();
+};
+
+class RefreshBackground : public QRunnable {
+	Generator& generator_;
+
+public:
+	RefreshBackground(Generator& generator);
+protected:
+	void run();
 };
 
 #endif // IMAGECONTROLWIDGET_H

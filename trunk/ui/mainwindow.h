@@ -20,6 +20,7 @@ class MainWindow : public QMainWindow {
 	QAction* newMagnet1Action;
 	QAction* newPendulumAction;
 	QAction* saveImageAction;
+	QAction* duplicateAction;
 	QAction* closeAction;
 
 	QMenu* settingsMenu;
@@ -48,8 +49,9 @@ private slots:
 
 	void saveImage(int tab = -1);
 	void closeTab(int tab = -1);
+	void duplicateTab(int tab = -1);
 
-	void addTab(Specification* spec);
+	void addTab(const Specification& spec);
 
 private:
 	void init();

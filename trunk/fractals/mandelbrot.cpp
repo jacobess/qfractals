@@ -233,7 +233,7 @@ const Mandelbrot<T>& MandelbrotGenerator<T>::specification() const {
 }
 
 template<class T>
-Mandelbrot<T>& MandelbrotGenerator<T>::specification() {
+Mandelbrot<T>& MandelbrotGenerator<T>::spec() {
 	return spec_;
 }
 
@@ -242,9 +242,13 @@ template<class T>
 void MandelbrotGenerator<T>::color(uchar type, double value,
 			  double& r, double& g, double& b, double& a) const {
 
-	value = log(value);
-
 	if(type == 1) {
+		if(value > 1) {
+			value = log(value);
+		} else {
+			value = value - 1;
+		}
+
 		spec_.bailoutPalette().color(value, r, g, b, a);
 	} else if(type == 2) {
 		spec_.epsilonPalette().color(value, r, g, b, a);

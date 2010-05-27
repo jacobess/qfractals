@@ -55,7 +55,7 @@ public:
 	virtual void color(uchar type, double value, double& r, double& g, double& b, double& a) const = 0;
 
 protected:
-	virtual Rendering<T>& specification() = 0;
+	virtual Rendering<T>& spec() = 0;
 
 	RenderedImage& img();
 	const RenderedImage& img() const;

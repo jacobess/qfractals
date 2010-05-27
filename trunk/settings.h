@@ -55,15 +55,7 @@ public:
 	static Settings* settings();
 
 	const QMap<QString, Specification*>& specifications() const;
-	/*Mandelbrot<double> *mandelbrotDefault() const;
 
-	IFS<double> *sierpinski() const;
-	IFS<double> *fern() const;
-	IFS<double> *ifsDefault() const;
-
-	Magnetic<double> *magneticDefault() const;*/
-
-	int threadCount() const;
 	int updateInterval() const;
 	int refreshInterval() const;
 

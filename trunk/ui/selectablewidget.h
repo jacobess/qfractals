@@ -43,7 +43,7 @@ signals:
 
 private:
 	int findSelectablePoint(QPoint pos) const;
-	void moveSelectedPoint(bool keepRatio, bool keepCentered);
+	void moveSelectedPoint(bool keepRatio, bool keepCentered, bool shear);
 
 	// Translate Coordinates
 	QPointF toImg(QPointF p) const;

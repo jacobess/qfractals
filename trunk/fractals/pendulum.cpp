@@ -252,7 +252,7 @@ PendulumGenerator<T>::~PendulumGenerator() {
 }
 
 template<class T>
-Pendulum<T>& PendulumGenerator<T>::specification() {
+Pendulum<T>& PendulumGenerator<T>::spec() {
 	return  spec_;
 }
 

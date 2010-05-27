@@ -149,14 +149,24 @@ void Spline::initSpline() {
 			b_.resize(size());
 			c_.resize(size());
 
-			int l = 0;
+			int l0 = 0;
 
 			// find smallest y
 			for(int i = 1; i < size(); i++) {
-				if(y_[i] < y_[l]) l = i;
+				if(y_[i] < y_[l0]) l0 = i;
 			}
 
-			createSubSpline(l, size() + l);
+			int l = l0;
+
+			for(int r = l0 + 1; r < l0 + size(); r ++) {
+				if((y_[md(r - 1)] - y_[md(r)]) * (y_[md(r)] - y_[md(r+1)]) <= 0) {
+					createSubSpline(l, r);
+					l = r;
+				}
+
+			}
+
+			createSubSpline(l, size() + l0);
 		} else {
 			a_.resize(size() - 1);
 			b_.resize(size() - 1);

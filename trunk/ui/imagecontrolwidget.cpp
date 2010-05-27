@@ -3,23 +3,37 @@
 #include "settings.h"
 #include "resizedialog.h"
 
+#include <QtConcurrentRun>
+
 #define ABS(x)	((x) >= 0 ? (x) : -(x))
 
-ImageControlWidget::ImageControlWidget(QWidget* parent, Specification* spec) :
+ImageControlWidget::ImageControlWidget(QWidget* parent, const Specification& spec) :
 		QWidget(parent), generator_(
-				spec->createGenerator(
+				spec.createGenerator(
 						Settings::settings()->defaultWidth(),
-						Settings::settings()->defaultHeight()))
+						Settings::settings()->defaultHeight())),
+		isRunning_(false)
 {
 	init();
+	refreshPool_.setMaxThreadCount(1);
 	generator_->start();
 }
 
 ImageControlWidget::~ImageControlWidget() {
-	// TODO Causes bad bad things.
-	generator_->cancelWait();
+	refreshTimer_.stop();
+	updateTimer_.stop();
+	generator_->dispose();
 	delete generator_;
 }
+
+const Specification& ImageControlWidget::specification() const {
+	// TODO What's the problem here?
+
+	const Specification& spec =  generator_->specification();
+
+	return spec;
+}
+
 
 void ImageControlWidget::init() {
 	selectableWidget_ = new SelectableWidget(this, generator_);
@@ -95,14 +109,14 @@ void ImageControlWidget::init() {
 
 	// Connect the generator
 	// First receive done-signal
-	connect(generator_, SIGNAL(done(bool)), this, SLOT(setDone(bool)), Qt::DirectConnection);
-	connect(generator_, SIGNAL(started()), this, SLOT(setStarted()), Qt::DirectConnection);
+	connect(generator_, SIGNAL(executionStopped()), this, SLOT(setDone()), Qt::DirectConnection);
+	connect(generator_, SIGNAL(executionStarted()), this, SLOT(setStarted()), Qt::DirectConnection);
 
 	connect(&updateTimer_, SIGNAL(timeout()), selectableWidget_, SLOT(repaint()));
 	connect(&updateTimer_, SIGNAL(timeout()), this, SLOT(updateProgress()));
-	connect(&refreshTimer_, SIGNAL(timeout()), generator_, SLOT(refresh()));
+	connect(&refreshTimer_, SIGNAL(timeout()), this, SLOT(refreshBackground()));
 
-	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(cancel()));
+	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(abort()));
 }
 
 void ImageControlWidget::changeScale(int i) {
@@ -209,15 +223,20 @@ void ImageControlWidget::updateSize() {
 	selectableWidget_->resize(wp , hp);
 }
 
+// Combine both methods in a thread
+// that starts a launcher thread in
+// generator that itself launches all threads
+// while waiting for their termination. Saves
+// runningCount and signal/slot-sync-troubles.
 
 void ImageControlWidget::setStarted() {
-	// Synch with running flag
+	QMutexLocker locker(&mutex_);
 
-	qDebug("Receiving started");
+	isRunning_ = true;
 
 	cancelButton_->setText("Cancel");
 	disconnect(cancelButton_, 0, generator_, 0);
-	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(cancel()));
+	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(abort()));
 
 	if(this->isVisible()) {
 		updateTimer_.start(Settings::settings()->updateInterval());
@@ -227,38 +246,42 @@ void ImageControlWidget::setStarted() {
 	progressBar_->setEnabled(true);
 }
 
-void ImageControlWidget::setDone(bool) {
-	// Synch with running flag
+void ImageControlWidget::setDone() {
+	QMutexLocker locker (&mutex_);
 
-	qDebug("Received done-signal");
+	isRunning_ = false;
 
 	cancelButton_->setText("Resume");
 
+	// TODO Causes Windows-Version to crash
 	progressBar_->setEnabled(false);
 
 	disconnect(cancelButton_, 0, generator_, 0);
-	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(start()));
-
-	QMutexLocker locker();
+	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(resume()));
 
 	updateTimer_.stop();
 	refreshTimer_.stop();
+
+	repaint();
 }
 
 void ImageControlWidget::showEvent(QShowEvent *) {
-	// Synch with running flag
+	QMutexLocker locker(&mutex_);
 
-	if(generator_->isRunning()) {
+	if(isRunning_) {
 		updateTimer_.start(Settings::settings()->updateInterval());
 		refreshTimer_.start(Settings::settings()->refreshInterval());
 	}
 }
 
 void ImageControlWidget::hideEvent(QHideEvent *) {
-	// Synch with running flag
+	QMutexLocker locker(&mutex_);
 
-	updateTimer_.stop();
-	refreshTimer_.stop();
+	if(isRunning_) {
+		// TODO Causes thread-error-message
+		updateTimer_.stop();
+		refreshTimer_.stop();
+	}
 }
 
 
@@ -271,6 +294,12 @@ void ImageControlWidget::updateProgress() {
 	}
 
 	progressBar_->setValue(progress);
+}
+
+void ImageControlWidget::refreshBackground() {
+	QRunnable* refresher = new RefreshBackground(*generator_);
+	refresher->setAutoDelete(true);
+	refreshPool_.start(refresher);
 }
 
 void ImageControlWidget::setStatus(QString message) {
@@ -307,6 +336,7 @@ void ImageControlWidget::saveImage() {
 	}
 
 	if(save) {
+		// TODO: Filename proposal
 		QString fileName = QFileDialog::getSaveFileName(this,
 		     tr("Save Image"), "", tr("Image Files (*.png)"));
 
@@ -321,7 +351,21 @@ void ImageControlWidget::saveImage() {
 				msgBox.setStandardButtons(QMessageBox::Ok);
 				msgBox.setDefaultButton(QMessageBox::Ok);
 				msgBox.exec();
+			} else {
+				QMessageBox msgBox;
+				msgBox.setText("File saved");
+				msgBox.setInformativeText("File was successfully saved.");
+				msgBox.setStandardButtons(QMessageBox::Ok);
+				msgBox.setDefaultButton(QMessageBox::Ok);
+				msgBox.exec();
 			}
 		}
 	}
+}
+
+RefreshBackground::RefreshBackground(Generator &generator) :
+		generator_(generator) {}
+
+void RefreshBackground::run() {
+	generator_.refresh();
 }

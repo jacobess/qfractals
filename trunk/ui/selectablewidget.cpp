@@ -194,8 +194,9 @@ void SelectableWidget::mouseMoveEvent(QMouseEvent *event) {
 				// Modifiers
 				bool keepCentered = (event->modifiers() & Qt::ShiftModifier) != 0;
 				bool keepRatio = (event->modifiers() & Qt::AltModifier) == 0;
+				bool shear = (event->modifiers() & Qt::ControlModifier) != 0;
 
-				moveSelectedPoint(keepRatio, keepCentered);
+				moveSelectedPoint(keepRatio, keepCentered, shear);
 				repaint();
 			} else {
 				// File a bug.
@@ -243,7 +244,9 @@ int SelectableWidget::findSelectablePoint(QPoint pos) const {
 	}
 }
 
-void SelectableWidget::moveSelectedPoint(bool keepRatio, bool keepCentered) {
+void SelectableWidget::moveSelectedPoint(bool keepRatio, bool keepCentered, bool shear) {
+	// TODO Add shear
+
 	qreal x = p0_.x();
 	qreal y = p0_.y();
 

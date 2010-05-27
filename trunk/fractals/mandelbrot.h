@@ -96,7 +96,7 @@ public:
 		   double& r, double& g, double& b, double& a) const;
 
 protected:
-	Mandelbrot<T>& specification();
+	Mandelbrot<T>& spec();
 };
 
 #endif // MANDELBROT_H

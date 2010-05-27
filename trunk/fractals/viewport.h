@@ -32,7 +32,7 @@ public:
 	QString pointDescription(double x, double y);
 
 protected:
-	virtual Viewport<T>& specification() = 0;
+	virtual Viewport<T>& spec() = 0;
 };
 
 #endif // VIEWPORT_H
