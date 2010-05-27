@@ -12,7 +12,7 @@ ImageControlWidget::ImageControlWidget(QWidget* parent, const Specification& spe
 				spec.createGenerator(
 						Settings::settings()->defaultWidth(),
 						Settings::settings()->defaultHeight())),
-		isRunning_(false)
+		runningIndex_(0)
 {
 	init();
 	refreshPool_.setMaxThreadCount(1);
@@ -109,8 +109,8 @@ void ImageControlWidget::init() {
 
 	// Connect the generator
 	// First receive done-signal
-	connect(generator_, SIGNAL(executionStopped()), this, SLOT(setDone()), Qt::DirectConnection);
-	connect(generator_, SIGNAL(executionStarted()), this, SLOT(setStarted()), Qt::DirectConnection);
+	connect(generator_, SIGNAL(executionStopped(int)), this, SLOT(setExecutionStopped(int)));
+	connect(generator_, SIGNAL(executionStarted(int)), this, SLOT(setExecutionStarted(int)));
 
 	connect(&updateTimer_, SIGNAL(timeout()), selectableWidget_, SLOT(repaint()));
 	connect(&updateTimer_, SIGNAL(timeout()), this, SLOT(updateProgress()));
@@ -229,10 +229,10 @@ void ImageControlWidget::updateSize() {
 // while waiting for their termination. Saves
 // runningCount and signal/slot-sync-troubles.
 
-void ImageControlWidget::setStarted() {
+void ImageControlWidget::setExecutionStarted(int index) {
 	QMutexLocker locker(&mutex_);
 
-	isRunning_ = true;
+	runningIndex_ = index;
 
 	cancelButton_->setText("Cancel");
 	disconnect(cancelButton_, 0, generator_, 0);
@@ -246,29 +246,32 @@ void ImageControlWidget::setStarted() {
 	progressBar_->setEnabled(true);
 }
 
-void ImageControlWidget::setDone() {
+void ImageControlWidget::setExecutionStopped(int index) {
 	QMutexLocker locker (&mutex_);
 
-	isRunning_ = false;
+	if(index == runningIndex_) {
+		updateTimer_.stop();
+		refreshTimer_.stop();
 
-	cancelButton_->setText("Resume");
+		cancelButton_->setText("Resume");
 
-	// TODO Causes Windows-Version to crash
-	progressBar_->setEnabled(false);
+		progressBar_->setMaximum(1);
+		progressBar_->setValue(1);
+		progressBar_->setEnabled(false);
 
-	disconnect(cancelButton_, 0, generator_, 0);
-	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(resume()));
+		disconnect(cancelButton_, 0, generator_, 0);
+		connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(resume()));
 
-	updateTimer_.stop();
-	refreshTimer_.stop();
+		repaint();
 
-	repaint();
+		runningIndex_ = -1;
+	} // otherwise ignore since a later start-message arrived
 }
 
 void ImageControlWidget::showEvent(QShowEvent *) {
 	QMutexLocker locker(&mutex_);
 
-	if(isRunning_) {
+	if(runningIndex_ >= 0) {
 		updateTimer_.start(Settings::settings()->updateInterval());
 		refreshTimer_.start(Settings::settings()->refreshInterval());
 	}
@@ -277,8 +280,7 @@ void ImageControlWidget::showEvent(QShowEvent *) {
 void ImageControlWidget::hideEvent(QHideEvent *) {
 	QMutexLocker locker(&mutex_);
 
-	if(isRunning_) {
-		// TODO Causes thread-error-message
+	if(runningIndex_ >= 0) {
 		updateTimer_.stop();
 		refreshTimer_.stop();
 	}
@@ -324,7 +326,7 @@ void ImageControlWidget::showResizeDialog() {
 
 void ImageControlWidget::saveImage() {
 	bool save = true;
-	if(generator_->isRunning()) {
+	if(runningIndex_ >= 0) {
 		QMessageBox msgBox;
 		msgBox.setText("Calculation is still running.");
 		msgBox.setInformativeText("Do you want to save anyway?");

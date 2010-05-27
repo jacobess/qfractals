@@ -90,8 +90,10 @@ void Generator::run() {
 	dispose_ = false;
 	runningMutex_.lock();
 
+	int executionIndex = 0;
+
 	forever {
-		emit executionStarted();
+		emit executionStarted(executionIndex);
 
 		init();
 
@@ -111,7 +113,7 @@ void Generator::run() {
 			img().refreshImage();
 			refreshMutex_.unlock();
 
-			emit executionStopped();
+			emit executionStopped(executionIndex++);
 		}
 
 		waitCondition_.wait(&runningMutex_);

@@ -70,8 +70,8 @@ public:
 	virtual QString pointDescription(qreal x, qreal y) = 0;
 
 signals:
-	void executionStarted();
-	void executionStopped();
+	void executionStarted(int);
+	void executionStopped(int);
 
 	void resized(int width, int height);
 
