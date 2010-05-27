@@ -28,8 +28,7 @@ ViewportGenerator<T>::~ViewportGenerator() {}
 
 template<class T>
 void ViewportGenerator<T>::scale(int cx, int cy, double factor) {
-	QMutexLocker locker(&threadMutex_);
-	cancelWaitUnsafe();
+	lockForCommit();
 
 	img().scale(cx, cy, factor);
 
@@ -38,17 +37,15 @@ void ViewportGenerator<T>::scale(int cx, int cy, double factor) {
 
 	Transformation<T> s(factor, 0, 0, factor, (1 - factor) * dx, (1 - factor) * dy);
 
-	Transformation<T>& t = specification().transformation();
+	Transformation<T>& t = spec().transformation();
 	t = s * t;
 
-	startUnsafe();
+	finishCommit();
 }
 
 template<class T>
 void ViewportGenerator<T>::move(int dx, int dy) {
-	QMutexLocker locker(&threadMutex_);
-
-	cancelWaitUnsafe();
+	lockForCommit();
 
 	img().move(dx, dy);
 
@@ -59,17 +56,15 @@ void ViewportGenerator<T>::move(int dx, int dy) {
 
 	Transformation<T> tr(1, 0, 0, 1, dx0, dy0);
 
-	Transformation<T>& t = specification().transformation();
+	Transformation<T>& t = spec().transformation();
 	t = tr * t;
 
-	startUnsafe();
+	finishCommit();
 }
 
 template<class T>
 void ViewportGenerator<T>::select(double wx, double wy, double hx, double hy, double x0, double y0) {
-	QMutexLocker locker(&threadMutex_);
-
-	cancelWaitUnsafe();
+	lockForCommit();
 
 	img().select(wx, wy, hx, hy, x0, y0);
 
@@ -99,16 +94,16 @@ void ViewportGenerator<T>::select(double wx, double wy, double hx, double hy, do
 
 	Transformation<T> s(wx, hx, wy, hy, x0, y0);
 
-	Transformation<T>& t = specification().transformation();
+	Transformation<T>& t = spec().transformation();
 	t = s * t;
 
-	startUnsafe();
+	finishCommit();
 }
 
 template<class T>
 QString ViewportGenerator<T>::pointDescription(double x, double y) {
 	double x0 = img().normX(x);
-	double y0 = img().normX(y);
+	double y0 = img().normY(y);
 
 	T tx = specification().transformation().toX(x0, y0);
 	T ty = specification().transformation().toY(x0, y0);

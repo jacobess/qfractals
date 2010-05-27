@@ -1,29 +1,17 @@
 #include "specification.h"
 
 #include <QTime>
+#include <QtConcurrentRun>
+#include <QVarLengthArray>
+#include <QFuture>
 
 Generator::Generator(int threadCount, bool isSelectable) :
-		isStopped_(false),
-		runningCount_(0),
-		isSelectable_(isSelectable)
-{
-	for(int i = 0; i < threadCount; i++) {
-		threads_.push_back(new Thread(i, *this));
-	}
-
-	refreshThread_ = new RefreshThread(*this);
+		isSelectable_(isSelectable),
+		threadCount_(threadCount <= 0 ? QThread::idealThreadCount() : threadCount) {
+	threadPool.setMaxThreadCount(threadCount_);
 }
 
-Generator::~Generator()
-{
-	// must have been stopped
-	//qDebug("Destructor Generator");
-
-	foreach(Thread* t, threads_) {
-		delete t;
-	}
-
-	delete refreshThread_;
+Generator::~Generator() {
 }
 
 const QImage& Generator::image() const {
@@ -31,12 +19,34 @@ const QImage& Generator::image() const {
 }
 
 void Generator::setSize(int width, int height) {
-	QMutexLocker locker(&threadMutex_);
-
-	cancelWaitUnsafe();
+	lockForCommit();
 	img().setSize(width, height);
-	startUnsafe();
+	finishCommit();
 }
+
+void Generator::lockForCommit() {
+	restartMutex_.lock();
+	restart_ = true;
+	abort_ = true;
+	runningMutex_.lock();
+	restart_ = false;
+	abort_ = false;
+	restartMutex_.unlock();
+	refreshMutex_.lock();
+}
+
+void Generator::finishCommit() {
+	restartMutex_.lock();
+
+	if(!restart_) {
+		waitCondition_.wakeOne();
+	}
+
+	runningMutex_.unlock();
+	restartMutex_.unlock();
+	refreshMutex_.unlock();
+}
+
 
 int Generator::width() const {
 	return img().width();
@@ -62,126 +72,106 @@ double Generator::denormY(double y0) const {
 	return img().denormY(y0);
 }
 
-
-bool Generator::isRunning() const {
-	return runningCount_ > 0;
-}
-
 int Generator::threadCount() const {
-	return threads_.size();
+	return threadCount_;
 }
 
-void Generator::start() {
-	QMutexLocker locker(&threadMutex_);
-	isStopped_ = false;
-	startUnsafe();
-}
+void Generator::run() {
 
-void Generator::startUnsafe() {
-	if(!isStopped_) {
-		//qDebug("Start Unsafe");
+	QVarLengthArray< SubThread* > subthreads;
+	subthreads.resize(threadCount_);
 
-		//qDebug("SU: Running Count Set");
+	for(int i = 0; i < threadCount_; i++) {
+		subthreads[i] = new SubThread(*this, i);
+	}
 
-		emit started();
+	restart_ = false;
+	abort_ = false;
+	dispose_ = false;
+	runningMutex_.lock();
 
-		qDebug("SU: Started-signal emitted");
+	forever {
+		emit executionStarted();
 
 		init();
 
-		//qDebug("SU: Initialization done");
+		QTime time;
+		time.start();
 
-		runningCountMutex_.lock();
-
-		for(int i = 0; i < threads_.size(); i++) {
-			threads_[i]->start();
+		for(int i = 0; i < threadCount_; i++) {
+			threadPool.start(subthreads[i]);
 		}
 
-		runningCount_ = threads_.size();
+		threadPool.waitForDone();
 
-		runningCountMutex_.unlock();
+		qDebug("Threads finished after %d ms", time.elapsed());
 
-		//qDebug("SU: Threads started");
-	} else {
-		//qDebug("SU: Not starting since already stopped");
-		isStopped_ = false;
+		if(!restart_) {
+			refreshMutex_.lock();
+			img().refreshImage();
+			refreshMutex_.unlock();
+
+			emit executionStopped();
+		}
+
+		waitCondition_.wait(&runningMutex_);
+
+		if(dispose_) {
+			break;
+		}
+	}
+
+	for(int i = 0; i < threadCount_; i++) {
+		delete subthreads[i];
 	}
 }
 
-void Generator::cancel() {
-	//qDebug("Setting isStopped to true");
-	isStopped_ = true;
+void Generator::abort() {
+	restartMutex_.lock();
+	abort_ = true;
+	runningMutex_.lock();
+	abort_ = false;
+	restartMutex_.unlock();
+	runningMutex_.unlock();
 }
 
-void Generator::cancelWait() {
-	QMutexLocker locker(&threadMutex_);
-	cancelWaitUnsafe();
-}
-
-void Generator::cancelWaitUnsafe() {
-	if(isRunning()) {
-		cancel();
+void Generator::resume() {
+	if(runningMutex_.tryLock()) {
+		waitCondition_.wakeOne();
+		runningMutex_.unlock();
 	}
-
-	foreach(Thread* t, threads_) {
-		t->wait();
-	}
-
-	refreshThread_->wait();
 }
 
-bool Generator::isStopped() const {
-	return isStopped_;
+bool Generator::isAborted() {
+	return abort_;
+}
+
+void Generator::dispose() {
+	restartMutex_.lock();
+	abort_ = true;
+	runningMutex_.lock();
+	abort_ = false;
+	dispose_ = true;
+	restartMutex_.unlock();
+	waitCondition_.wakeOne();
+	runningMutex_.unlock();
+
+	refreshMutex_.lock();
+	refreshMutex_.unlock();
 }
 
 void Generator::refresh() {
-	if(!refreshThread_->isRunning()) {
-		refreshThread_->start(QThread::LowPriority);
-	}
+	refreshMutex_.lock();
+	img().refreshImage();
+	refreshMutex_.unlock();
 }
 
-void Generator::emitDoneSignal() {
-	emit done(isStopped_);
+SubThread::SubThread(Generator &parent, int index) :
+		parent_(parent),
+		index_(index) {
+	setAutoDelete(false);
 }
 
-Thread::Thread(int index, Generator &parent) :
-		index_(index),
-		parent_(parent) {}
-
-void Thread::run() {
-	//qDebug("Launching thread %d", index_);
-	QTime time;
-	time.start();
-
+void SubThread::run() {
 	parent_.exec(index_);
-
-	QMutexLocker locker(&parent_.runningCountMutex_);
-
-	if(parent_.runningCount_ == 1)
-	{
-		qDebug("%d: Emitting done-signal", index_);
-
-		if(!parent_.isStopped_) {
-			parent_.refresh();
-			parent_.refreshThread_->wait();
-		}
-
-		parent_.emitDoneSignal();
-
-		qDebug("%d: Done-signal emitted", index_);
-
-		// So that new cancel-messages can be obtained
-		parent_.isStopped_ = false;
-	}
-
-	parent_.runningCount_ --;
-
-	qDebug("Thread %d finished after %d ms", index_, time.elapsed());
-}
-
-RefreshThread::RefreshThread(Generator &parent) :
-		parent_(parent) {}
-
-void RefreshThread::run() {
-	parent_.img().refreshImage();
 }

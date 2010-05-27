@@ -7,7 +7,6 @@ Settings* Settings::singleton_ = 0;
 
 
 Settings::Settings() :
-		threadCount_(4),
 		updateInterval_(175),
 		refreshInterval_(5000),
 		selectionRad_(7),
@@ -38,13 +37,13 @@ Settings::Settings() :
 	selPen2_.setWidthF(1.5);
 
 	QVector<double> dashPattern;
-	dashPattern << 4 << 4;
+	dashPattern << 3 << 3;
 
 	selPen1_.setDashPattern(dashPattern);
 	selPen2_.setDashPattern(dashPattern);
 
 	selPen1_.setDashOffset(0);
-	selPen2_.setDashOffset(4);
+	selPen2_.setDashOffset(3);
 
 	initSpecs();
 }
@@ -54,14 +53,13 @@ void Settings::initSpecs() {
 		// Mandelbrot:
 		ColorPalette palette;
 
-		double p = 1;
+		palette.setPeriod(1);
 
-		palette.setPeriod(p);
-		palette.addColor(28 * p / 400., 0x00 / 255., 0x07 / 255., 0x64 / 255.);  // 00 07 64
-		palette.addColor(92 * p / 400., 0x20 / 255., 0x6b / 255., 0xcb / 255.);  // 20 6b cb
-		palette.addColor(196 * p / 400., 0xed / 255., 0xff / 255., 0xff / 255.); // ed ff ff
-		palette.addColor(285 * p / 400., 0xff / 255., 0xaa / 255., 0x00 / 255.); // ff aa 00
-		palette.addColor(371 * p / 400., 0x31 / 255., 0x02 / 255., 0x30 / 255.); // 31 02 30
+		palette.addColor(0.07, 0.00, 0.03, 0.39);  // 00 07 64
+		palette.addColor(0.23, 0.13, 0.42, 0.80);  // 20 6b cb
+		palette.addColor(0.49, 0.93, 1.00, 1.00); // ed ff ff
+		palette.addColor(0.71, 1.00, 0.69, 0.00); // ff aa 00
+		palette.addColor(0.92, 0.20, 0.01, 0.19); // 31 02 30
 
 		ColorPalette epsPalette;
 
@@ -90,15 +88,13 @@ void Settings::initSpecs() {
 
 		ColorPalette palette;
 
+		palette.setPeriod(1);
 
-		double p = 1;
-
-		palette.setPeriod(p);
-		palette.addColor(28 * p / 400., 0x00 / 255., 0x07 / 255., 0x64 / 255.);  // 00 07 64
-		palette.addColor(92 * p / 400., 0x20 / 255., 0x6b / 255., 0xcb / 255.);  // 20 6b cb
-		palette.addColor(196 * p / 400., 0xed / 255., 0xff / 255., 0xff / 255.); // ed ff ff
-		palette.addColor(285 * p / 400., 0xff / 255., 0xaa / 255., 0x00 / 255.); // ff aa 00
-		palette.addColor(371 * p / 400., 0x31 / 255., 0x02 / 255., 0x30 / 255.); // 31 02 30
+		palette.addColor(0.07, 0.00, 0.03, 0.39);  // 00 07 64
+		palette.addColor(0.23, 0.13, 0.42, 0.80);  // 20 6b cb
+		palette.addColor(0.49, 0.93, 1.00, 1.00); // ed ff ff
+		palette.addColor(0.71, 1.00, 0.69, 0.00); // ff aa 00
+		palette.addColor(0.92, 0.20, 0.01, 0.19); // 31 02 30
 
 		ColorPalette epsPalette;
 
@@ -122,7 +118,7 @@ void Settings::initSpecs() {
 				base,
 				iteration,
 				10240,
-				2,
+				65536,
 				1e-6,
 				palette,
 				epsPalette);
@@ -133,15 +129,13 @@ void Settings::initSpecs() {
 
 		ColorPalette palette;
 
+		palette.setPeriod(1);
 
-		double p = 1;
-
-		palette.setPeriod(p);
-		palette.addColor(28 * p / 400., 0x00 / 255., 0x07 / 255., 0x64 / 255.);  // 00 07 64
-		palette.addColor(92 * p / 400., 0x20 / 255., 0x6b / 255., 0xcb / 255.);  // 20 6b cb
-		palette.addColor(196 * p / 400., 0xed / 255., 0xff / 255., 0xff / 255.); // ed ff ff
-		palette.addColor(285 * p / 400., 0xff / 255., 0xaa / 255., 0x00 / 255.); // ff aa 00
-		palette.addColor(371 * p / 400., 0x31 / 255., 0x02 / 255., 0x30 / 255.); // 31 02 30
+		palette.addColor(0.07, 0.00, 0.03, 0.39);  // 00 07 64
+		palette.addColor(0.23, 0.13, 0.42, 0.80);  // 20 6b cb
+		palette.addColor(0.49, 0.93, 1.00, 1.00); // ed ff ff
+		palette.addColor(0.71, 1.00, 0.69, 0.00); // ff aa 00
+		palette.addColor(0.92, 0.20, 0.01, 0.19); // 31 02 30
 
 		ColorPalette epsPalette;
 
@@ -172,15 +166,13 @@ void Settings::initSpecs() {
 
 		ColorPalette palette;
 
+		palette.setPeriod(1);
 
-		double p = 1;
-
-		palette.setPeriod(p);
-		palette.addColor(28 * p / 400., 0x00 / 255., 0x07 / 255., 0x64 / 255.);  // 00 07 64
-		palette.addColor(92 * p / 400., 0x20 / 255., 0x6b / 255., 0xcb / 255.);  // 20 6b cb
-		palette.addColor(196 * p / 400., 0xed / 255., 0xff / 255., 0xff / 255.); // ed ff ff
-		palette.addColor(285 * p / 400., 0xff / 255., 0xaa / 255., 0x00 / 255.); // ff aa 00
-		palette.addColor(371 * p / 400., 0x31 / 255., 0x02 / 255., 0x30 / 255.); // 31 02 30
+		palette.addColor(0.07, 0.00, 0.03, 0.39);  // 00 07 64
+		palette.addColor(0.23, 0.13, 0.42, 0.80);  // 20 6b cb
+		palette.addColor(0.49, 0.93, 1.00, 1.00); // ed ff ff
+		palette.addColor(0.71, 1.00, 0.69, 0.00); // ff aa 00
+		palette.addColor(0.92, 0.20, 0.01, 0.19); // 31 02 30
 
 		ColorPalette epsPalette;
 
@@ -210,25 +202,24 @@ void Settings::initSpecs() {
 		// magnet1
 		ColorPalette palette;
 
-		double p = 1;
+		palette.setPeriod(1);
 
-		palette.setPeriod(p);
-		palette.addColor(28 * p / 400., 0x00 / 255., 0x07 / 255., 0x64 / 255.);  // 00 07 64
-		palette.addColor(92 * p / 400., 0x20 / 255., 0x6b / 255., 0xcb / 255.);  // 20 6b cb
-		palette.addColor(196 * p / 400., 0xed / 255., 0xff / 255., 0xff / 255.); // ed ff ff
-		palette.addColor(285 * p / 400., 0xff / 255., 0xaa / 255., 0x00 / 255.); // ff aa 00
-		palette.addColor(371 * p / 400., 0x31 / 255., 0x02 / 255., 0x30 / 255.); // 31 02 30
+		palette.addColor(0.07, 0.00, 0.03, 0.39);  // 00 07 64
+		palette.addColor(0.23, 0.13, 0.42, 0.80);  // 20 6b cb
+		palette.addColor(0.49, 0.93, 1.00, 1.00); // ed ff ff
+		palette.addColor(0.71, 1.00, 0.69, 0.00); // ff aa 00
+		palette.addColor(0.92, 0.20, 0.01, 0.19); // 31 02 30
 
 		ColorPalette epsPalette;
 
-		p = 10;
+		epsPalette.setPeriod(1);
 
-		epsPalette.setPeriod(p);
-		epsPalette.addColor(28 * p / 400., 1 - 0x00 / 255., 1 - 0x07 / 255., 1 - 0x64 / 255.);  // 00 07 64
-		epsPalette.addColor(92 * p / 400., 1 - 0x20 / 255., 1 - 0x6b / 255., 1 - 0xcb / 255.);  // 20 6b cb
-		epsPalette.addColor(196 * p / 400., 1 - 0xed / 255., 1 - 0xff / 255., 1 - 0xff / 255.); // ed ff ff
-		epsPalette.addColor(285 * p / 400., 1 - 0xff / 255., 1 - 0xaa / 255., 1 - 0x00 / 255.); // ff aa 00
-		epsPalette.addColor(371 * p / 400., 1 - 0x31 / 255., 1 - 0x02 / 255., 1 - 0x30 / 255.); // 31 02 30
+		epsPalette.addColor(0.07, 0.00, 0.03, 0.39);  // 00 07 64
+		epsPalette.addColor(0.23, 0.13, 0.42, 0.80);  // 20 6b cb
+		epsPalette.addColor(0.49, 0.93, 1.00, 1.00); // ed ff ff
+		epsPalette.addColor(0.71, 1.00, 0.69, 0.00); // ff aa 00
+		epsPalette.addColor(0.92, 0.20, 0.01, 0.19); // 31 02 30
+
 
 		QList< Interpreter<double> > base;
 
@@ -253,7 +244,7 @@ void Settings::initSpecs() {
 				base,
 				iteration,
 				10240,
-				16,
+				65536,
 				1e-6,
 				palette,
 				epsPalette);
@@ -303,10 +294,6 @@ Settings* Settings::settings() {
 	}
 
 	return singleton_;
-}
-
-int Settings::threadCount() const {
-	return threadCount_;
 }
 
 int Settings::updateInterval() const {

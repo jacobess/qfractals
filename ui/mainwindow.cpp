@@ -42,6 +42,9 @@ void MainWindow::init() {
 	saveImageAction = fileMenu->addAction("&Save Image");
 	connect(saveImageAction, SIGNAL(triggered()), this, SLOT(saveImage()));
 
+	duplicateAction = fileMenu->addAction("&Duplicate Tab");
+	connect(duplicateAction, SIGNAL(triggered()), this, SLOT(duplicateTab()));
+
 	closeAction = fileMenu->addAction("&Close Tab");
 	connect(closeAction, SIGNAL(triggered()), this, SLOT(closeTab()));
 
@@ -87,31 +90,32 @@ void MainWindow::selectMode(bool enable) {
 
 void MainWindow::newMandelbrot() {
 	Specification* spec = Settings::settings()->specifications()[QString("mandelbrot")];
-	addTab(spec);
+	addTab(*spec);
 }
 
 void MainWindow::newLambda() {
 	Specification* spec = Settings::settings()->specifications()[QString("lambda")];
-	addTab(spec);
+	addTab(*spec);
 }
 
 void MainWindow::newTricorn() {
 	Specification* spec = Settings::settings()->specifications()[QString("tricorn")];
-	addTab(spec);
+	addTab(*spec);
 }
 
 void MainWindow::newBurningShip() {
 	Specification* spec = Settings::settings()->specifications()[QString("burning ship")];
-	addTab(spec);
+	addTab(*spec);
 }
 
 void MainWindow::newMagnet1() {
 	Specification* spec = Settings::settings()->specifications()[QString("magnet1")];
-	addTab(spec);
+	addTab(*spec);
 }
+
 void MainWindow::newPendulum() {
 	Specification* spec = Settings::settings()->specifications()[QString("pendulum")];
-	addTab(spec);
+	addTab(*spec);
 }
 
 void MainWindow::saveImage(int index) {
@@ -124,8 +128,18 @@ void MainWindow::saveImage(int index) {
 	}
 }
 
+void MainWindow::duplicateTab(int index) {
+	QWidget* widget = index == -1? tabWidget->currentWidget() : tabWidget->widget(index);
+
+	ImageControlWidget* imgWidget = dynamic_cast<ImageControlWidget*>(widget);
+
+	if(imgWidget != 0) {
+		addTab(imgWidget->specification());
+	}
+}
+
 void MainWindow::closeTab(int index) {
-	QWidget* widget = tabWidget->widget(index);
+	QWidget* widget = index == -1? tabWidget->currentWidget() : tabWidget->widget(index);
 
 	ImageControlWidget* imgWidget = dynamic_cast<ImageControlWidget*>(widget);
 
@@ -135,7 +149,8 @@ void MainWindow::closeTab(int index) {
 	}
 }
 
-void MainWindow::addTab(Specification* spec) {
+void MainWindow::addTab(const Specification& spec) {
 	ImageControlWidget* imgWidget = new ImageControlWidget(this, spec);
 	tabWidget->addTab(imgWidget, tr("Tab"));
+	tabWidget->setCurrentWidget(imgWidget);
 }

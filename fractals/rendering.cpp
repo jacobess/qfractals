@@ -10,7 +10,8 @@ Rendering<T>::~Rendering() {}
 
 template<class T>
 RenderingGenerator<T>::RenderingGenerator(int width, int height, int aa) :
-		ViewportGenerator<T>(Settings::settings()->threadCount()) {
+		ViewportGenerator<T>(-1)
+{
 	renderImg_ = new RenderedImage(width, height, aa, this);
 }
 
@@ -31,10 +32,11 @@ int RenderingGenerator<T>::totalSteps() const {
 
 template<class T>
 void RenderingGenerator<T>::setSize(int width, int height, int aa) {
-	QMutexLocker locker(&this->threadMutex_);
-	this->cancelWaitUnsafe();
+	this->lockForCommit();
+
 	renderImg_->setSize(width, height, aa);
-	this->startUnsafe();
+
+	this->finishCommit();
 }
 
 template<class T>
@@ -71,18 +73,18 @@ void RenderingGenerator<T>::exec(int index) {
 
 	int max = w > h ? w : h;
 
-	int idxCount = 1; // since 0 thread gets the middle
+	int idxCount = 1 % tc; // since 0 thread gets the middle
 
 	int x = w / 2;
 	int y = h / 2;
 
-	for(int i = 0; i < ppp && !this->isStopped(); i ++) {
+	for(int i = 0; i < ppp && !this->isAborted(); i ++) {
 
 		// Middle point is a special case
 		if(index == 0) calcPix(x, y, i, 0, env);
 
-		for(int r = 1; r <= (max + 1) / 2 && !this->isStopped(); r ++) {
-			for(int a = -r; a < r && !this->isStopped(); a++) {
+		for(int r = 1; r <= (max + 1) / 2 && !this->isAborted(); r ++) {
+			for(int a = -r; a < r && !this->isAborted(); a++) {
 				if(idxCount == index) {
 					// If this thread is responsible
 					calcPix(x + a, y - r, i, index, env);
@@ -102,7 +104,7 @@ void RenderingGenerator<T>::exec(int index) {
 
 template<class T>
 void RenderingGenerator<T>::calcPix(int x, int y, int i, int threadIndex, RenderingEnv<T>* env) {
-	if(this->isStopped()) return;
+	if(this->isAborted()) return;
 
 	int w = renderImg_->width();
 	int h = renderImg_->height();

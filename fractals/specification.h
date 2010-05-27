@@ -2,11 +2,12 @@
 #define SPECIFICATION_H
 
 #include <QThread>
-#include <QTimer>
 #include <QImage>
 #include <QMutex>
-
+#include <QWaitCondition>
 #include <QTime>
+#include <QRunnable>
+#include <QThreadPool>
 
 #include "graphics/image.h"
 
@@ -17,34 +18,26 @@ public:
 	virtual Generator* createGenerator(int width, int height) const = 0;
 };
 
-class Thread : public QThread {
-	const int index_;
-	Generator& parent_;
-public:
-	Thread(int index, Generator& parent); // Obtains a ticket from parent
-	void run(); // Calls execute in parent
-};
+class SubThread;
 
-class RefreshThread : public QThread {
-	Generator& parent_;
-public:
-	RefreshThread(Generator& parent);
-	void run();
-};
-
-class Generator : public QObject {
+class Generator : public QThread {
 	Q_OBJECT
 
-	bool isStopped_;
+	const bool isSelectable_;
+	const int threadCount_;
 
-	int runningCount_;
+	QThreadPool threadPool;
 
-	bool isSelectable_;
+	// Used to control the state the threads
+	bool restart_;
+	bool abort_;
+	bool dispose_;
 
-	QList<Thread*> threads_;
-	QMutex runningCountMutex_;
+	QMutex runningMutex_;
+	QMutex restartMutex_;
+	QMutex refreshMutex_;
 
-	RefreshThread* refreshThread_;
+	QWaitCondition waitCondition_;
 
 public:
 	Generator(int threadCount, bool isSelectable);
@@ -52,15 +45,11 @@ public:
 
 	virtual const Specification& specification() const = 0;
 
-	bool isRunning() const; // runningCount_ > 0?
-
 	virtual int progress() const = 0;
 	virtual int totalSteps() const = 0;
 
 	bool isSelectable() const;
 
-	// This method may trigger updates
-	// in image containers
 	const QImage& image() const;
 
 	int width() const;
@@ -80,38 +69,38 @@ public:
 
 	virtual QString pointDescription(qreal x, qreal y) = 0;
 
-	// TODO more detailed point description
-
 signals:
-	void started();
-	void done(bool cancelled);
+	void executionStarted();
+	void executionStopped();
 
 	void resized(int width, int height);
 
 public slots:
-	void start();
-	void cancel();
-	void cancelWait();
-
 	void refresh();
 
+	void resume();
+	void abort();
+
+	void dispose();
+
 protected:
+	int threadCount() const;
+
+	void run();
+
+	void lockForCommit(); // this locks runningMutex_
+	void finishCommit(); // this frees runningMutex_
+
+	bool isAborted();
+
 	virtual Image& img() = 0;
 	virtual const Image& img() const = 0;
 
-	virtual Specification& specification() = 0;
+	virtual Specification& spec() = 0;
 
 	/** Threads have to check this regularly and must terminate immediately
 	  * if this function returns true */
-	bool isStopped() const;
-
-	/** Cancels tasks (if running) and waits for termination, Not thread-safe */
-	void cancelWaitUnsafe();
-
-	/** Starts threads. Not thread-safe */
-	void startUnsafe();
-
-	int threadCount() const;
+	bool isAborted() const;
 
 	/** Some initialization code for subclasses */
 	virtual void init() = 0;
@@ -119,12 +108,17 @@ protected:
 	/** Method called by the index-th thread */
 	virtual void exec(int index) = 0;
 
-	QMutex threadMutex_;
-private:
-	void emitDoneSignal();
+friend class SubThread;
+};
 
-friend class Thread;
-friend class RefreshThread;
+class SubThread : public QRunnable {
+	Generator& parent_;
+	const int index_;
+
+public:
+	SubThread(Generator& parent, int index);
+protected:
+	void run();
 };
 
 #endif // SPECIFICATION_H

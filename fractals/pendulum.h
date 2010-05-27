@@ -100,7 +100,7 @@ public:
 		   double& r, double& g, double& b, double& a) const;
 
 protected:
-	Pendulum<T>& specification();
+	Pendulum<T>& spec();
 };
 
 #endif // PENDULUM_H
