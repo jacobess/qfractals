@@ -8,7 +8,8 @@
 Generator::Generator(int threadCount, bool isSelectable) :
 		isSelectable_(isSelectable),
 		threadCount_(threadCount <= 0 ? QThread::idealThreadCount() : threadCount) {
-	threadPool.setMaxThreadCount(threadCount_);
+	threadPool_.setMaxThreadCount(threadCount_);
+	notRunningCount_ = 0;
 }
 
 Generator::~Generator() {
@@ -22,29 +23,6 @@ void Generator::setSize(int width, int height) {
 	lockForCommit();
 	img().setSize(width, height);
 	finishCommit();
-}
-
-void Generator::lockForCommit() {
-	restartMutex_.lock();
-	restart_ = true;
-	abort_ = true;
-	runningMutex_.lock();
-	restart_ = false;
-	abort_ = false;
-	restartMutex_.unlock();
-	refreshMutex_.lock();
-}
-
-void Generator::finishCommit() {
-	restartMutex_.lock();
-
-	if(!restart_) {
-		waitCondition_.wakeOne();
-	}
-
-	runningMutex_.unlock();
-	restartMutex_.unlock();
-	refreshMutex_.unlock();
 }
 
 
@@ -76,7 +54,38 @@ int Generator::threadCount() const {
 	return threadCount_;
 }
 
-void Generator::run() {
+void Generator::launch() {
+	emitStarted();
+
+	init();
+
+	for(int i = 0; i < threadCount_; i++) {
+		threadPool_.start(new SubThread(*this, i));
+	}
+}
+
+void Generator::lockForCommit(bool restart, bool dispose) {
+	abortMutex_.lock();
+	restart_ = restart;
+	dispose_ = dispose;
+	abort_ = true;
+	rwLock_.lockForWrite(); // Deadlock
+	restart_ = false;
+	abort_ = false;
+	abortMutex_.unlock();
+}
+
+void Generator::finishCommit() {
+	if(!abort_) {
+		emitStarted();
+		init();
+		waitCondition_.wakeAll();
+	}
+
+	rwLock_.unlock();
+}
+
+/*void Generator::run() {
 
 	QVarLengthArray< SubThread* > subthreads;
 	subthreads.resize(threadCount_);
@@ -126,22 +135,31 @@ void Generator::run() {
 	for(int i = 0; i < threadCount_; i++) {
 		delete subthreads[i];
 	}
-}
+}*/
 
 void Generator::abort() {
-	restartMutex_.lock();
+	abortMutex_.lock();
 	abort_ = true;
-	runningMutex_.lock();
+	rwLock_.lockForWrite();
 	abort_ = false;
-	restartMutex_.unlock();
-	runningMutex_.unlock();
+	abortMutex_.unlock();
+	rwLock_.unlock();
 }
 
 void Generator::resume() {
-	if(runningMutex_.tryLock()) {
-		waitCondition_.wakeOne();
-		runningMutex_.unlock();
+	abortMutex_.lock();
+	abort_ = true;
+	rwLock_.lockForWrite();
+	abort_ = false;
+	abortMutex_.unlock();
+
+	if(!abort_) {
+		emitStarted();
+		init();
+		waitCondition_.wakeAll();
 	}
+
+	rwLock_.unlock();
 }
 
 bool Generator::isAborted() {
@@ -149,31 +167,89 @@ bool Generator::isAborted() {
 }
 
 void Generator::dispose() {
-	restartMutex_.lock();
+	abortMutex_.lock();
 	abort_ = true;
-	runningMutex_.lock();
-	abort_ = false;
 	dispose_ = true;
-	restartMutex_.unlock();
-	waitCondition_.wakeOne();
-	runningMutex_.unlock();
+	rwLock_.lockForWrite();
+	abort_ = false;
+	abortMutex_.unlock();
 
-	refreshMutex_.lock();
-	refreshMutex_.unlock();
+	waitCondition_.wakeAll();
+
+	rwLock_.unlock();
 }
 
 void Generator::refresh() {
-	refreshMutex_.lock();
-	img().refreshImage();
-	refreshMutex_.unlock();
+	if(rwLock_.tryLockForRead()) {
+		if(refreshMutex_.tryLock()) {
+			img().refreshImage();
+			refreshMutex_.unlock();
+		}
+
+		rwLock_.unlock();
+	}
+}
+
+void Generator::emitStopped() {
+	executionCountMutex_.lock();
+	int i = executionCount_;
+	executionCountMutex_.unlock();
+
+	emit executionStopped(i);
+}
+
+void Generator::emitStarted() {
+	executionCountMutex_.lock();
+	int i = ++executionCount_;
+	executionCountMutex_.unlock();
+
+	emit executionStarted(i);
 }
 
 SubThread::SubThread(Generator &parent, int index) :
 		parent_(parent),
 		index_(index) {
-	setAutoDelete(false);
+	setAutoDelete(true);
 }
 
 void SubThread::run() {
-	parent_.exec(index_);
+	parent_.rwLock_.lockForRead();
+
+	while(!parent_.dispose_) {
+		QTime time;
+
+		time.start();
+
+		if(!parent_.abort_) parent_.exec(index_);
+
+		// TODO In here count and refresh if last thread
+		parent_.notRunningCountMutex_.lock();
+
+		int i = ++parent_.notRunningCount_;
+
+		bool emitDone = i == parent_.threadCount();
+
+		if(emitDone) {
+			parent_.notRunningCount_ = 0;
+
+			parent_.notRunningCountMutex_.unlock();
+
+			if(!parent_.restart_ && !parent_.dispose_) {
+				parent_.refreshMutex_.lock();
+				parent_.img().refreshImage();
+
+				parent_.emitStopped();
+			}
+		} else {
+			parent_.notRunningCountMutex_.unlock();
+		}
+
+		qDebug("Thread %d finished as %d th thread after %d ms", index_, i, time.elapsed());
+
+		parent_.waitCondition_.wait(&parent_.rwLock_);
+
+		parent_.refreshMutex_.unlock();
+	}
+
+	parent_.rwLock_.unlock();
 }

@@ -8,6 +8,7 @@
 #include <QTime>
 #include <QRunnable>
 #include <QThreadPool>
+#include <QReadWriteLock>
 
 #include "graphics/image.h"
 
@@ -20,24 +21,31 @@ public:
 
 class SubThread;
 
-class Generator : public QThread {
+class Generator : public QObject {
 	Q_OBJECT
 
 	const bool isSelectable_;
 	const int threadCount_;
 
-	QThreadPool threadPool;
+	QThreadPool threadPool_;
 
 	// Used to control the state the threads
 	bool restart_;
 	bool abort_;
 	bool dispose_;
 
-	QMutex runningMutex_;
-	QMutex restartMutex_;
+	QMutex abortMutex_;
+	QReadWriteLock rwLock_;
+	QWaitCondition waitCondition_;
+
 	QMutex refreshMutex_;
 
-	QWaitCondition waitCondition_;
+	QMutex notRunningCountMutex_;
+	int notRunningCount_;
+
+
+	QMutex executionCountMutex_;
+	int executionCount_;
 
 public:
 	Generator(int threadCount, bool isSelectable);
@@ -76,19 +84,19 @@ signals:
 	void resized(int width, int height);
 
 public slots:
-	void refresh();
+	void launch();
 
 	void resume();
 	void abort();
+
+	void refresh();
 
 	void dispose();
 
 protected:
 	int threadCount() const;
 
-	void run();
-
-	void lockForCommit(); // this locks runningMutex_
+	void lockForCommit(bool restart = false, bool dispose = false); // this locks runningMutex_
 	void finishCommit(); // this frees runningMutex_
 
 	bool isAborted();
@@ -108,6 +116,10 @@ protected:
 	/** Method called by the index-th thread */
 	virtual void exec(int index) = 0;
 
+private:
+	void emitStopped();
+	void emitStarted();
+
 friend class SubThread;
 };
 
@@ -119,6 +131,8 @@ public:
 	SubThread(Generator& parent, int index);
 protected:
 	void run();
+
+friend class Generator;
 };
 
 #endif // SPECIFICATION_H

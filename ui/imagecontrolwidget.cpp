@@ -16,7 +16,7 @@ ImageControlWidget::ImageControlWidget(QWidget* parent, const Specification& spe
 {
 	init();
 	refreshPool_.setMaxThreadCount(1);
-	generator_->start();
+	generator_->launch();
 }
 
 ImageControlWidget::~ImageControlWidget() {
