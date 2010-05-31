@@ -59,6 +59,8 @@ void Generator::launch() {
 
 	init();
 
+	abort_ = restart_ = dispose_ = false;
+
 	for(int i = 0; i < threadCount_; i++) {
 		threadPool_.start(new SubThread(*this, i));
 	}
@@ -177,6 +179,8 @@ void Generator::dispose() {
 	waitCondition_.wakeAll();
 
 	rwLock_.unlock();
+
+	threadPool_.waitForDone();
 }
 
 void Generator::refresh() {
@@ -246,7 +250,7 @@ void SubThread::run() {
 
 		qDebug("Thread %d finished as %d th thread after %d ms", index_, i, time.elapsed());
 
-		parent_.waitCondition_.wait(&parent_.rwLock_);
+		parent_.waitCondition_.wait(&parent_.rwLock_); // Mark
 
 		parent_.refreshMutex_.unlock();
 	}
