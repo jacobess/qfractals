@@ -8,14 +8,12 @@ class PlottedImage : public Image {
 
 	ImageWrapper img;
 
-	float maxDensity;
+	double maxDensity;
 
-	QVarLengthArray<float> r;
-	QVarLengthArray<float> g;
-	QVarLengthArray<float> b;
-	QVarLengthArray<float> density;
-
-	bool refreshNeeded;
+	QVarLengthArray<double> r;
+	QVarLengthArray<double> g;
+	QVarLengthArray<double> b;
+	QVarLengthArray<double> density;
 public:
 	PlottedImage(int width, int height);
 	virtual ~PlottedImage();
@@ -34,16 +32,16 @@ public:
 
 	void setSize(int width, int height);
 
-	void scale(int cx, int cy, qreal factor);
+	void scale(int cx, int cy, double factor);
 	void move(int dx, int dy);
-	void select(qreal wx, qreal wy, qreal hx, qreal hy, qreal x0, qreal y0);
+	void select(double wx, double wy, double hx, double hy, double x0, double y0);
 
-	void addDot(qreal x, qreal y, float r, float g, float b);
+	void addDot(double x, double y, double r, double g, double b);
 
 	void refreshImage();
 
 protected:
-	void addDot(int x, int y, float r, float g, float b, float density = 1);
+	void addDot(int x, int y, double r, double g, double b, double density = 1);
 	void updatePix(int x, int y);
 };
 

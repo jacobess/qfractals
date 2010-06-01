@@ -7,8 +7,9 @@ PlottedImage::PlottedImage(int width, int height) :
 	r(width * height),
 	g(width * height),
 	b(width * height),
-	density(width * height),
-	refreshNeeded(false) {}
+	density(width * height) {
+	std::fill(density.data(), density.data() + width * height, 0);
+}
 
 PlottedImage::~PlottedImage() {}
 
@@ -46,7 +47,7 @@ void PlottedImage::setSize(int w, int h) {
 	std::fill(density.data(), density.data() + size, 0);
 }
 
-void PlottedImage::scale(int cx, int cy, qreal factor) {
+void PlottedImage::scale(int cx, int cy, double factor) {
 	img.scale(cx, cy, factor);
 	std::fill(density.data(), density.data() + width() * height(), 0);
 }
@@ -56,19 +57,15 @@ void PlottedImage::move(int dx, int dy) {
 	std::fill(density.data(), density.data() + width() * height(), 0);
 }
 
-void PlottedImage::select(qreal wx, qreal wy, qreal hx, qreal hy, qreal x0, qreal y0) {
+void PlottedImage::select(double wx, double wy, double hx, double hy, double x0, double y0) {
 	img.select(wx, wy, hx, hy, x0, y0);
 	std::fill(density.data(), density.data() + width() * height(), 0);
 }
 
 void PlottedImage::refreshImage() {
-	if(refreshNeeded) {
-		refreshNeeded = false;
-
-		for(int y = 0; y < height(); y++) {
-			for(int x = 0; x < width(); x++) {
-				updatePix(x, y);
-			}
+	for(int y = 0; y < height(); y++) {
+		for(int x = 0; x < width(); x++) {
+			updatePix(x, y);
 		}
 	}
 }
@@ -76,7 +73,7 @@ void PlottedImage::refreshImage() {
 void PlottedImage::updatePix(int x, int y) {
 	int index = x + width() * y;
 
-	float d;
+	double d;
 
 	if(maxDensity <= 1) {
 		d = density[index];
@@ -88,24 +85,24 @@ void PlottedImage::updatePix(int x, int y) {
 		//d = log(d * 5 + 1) / log(6);
 	}
 
-	float r0 = r[index];
-	float g0 = g[index];
-	float b0 = b[index];
+	double r0 = r[index];
+	double g0 = g[index];
+	double b0 = b[index];
 
 	img.setRgba(x, y, r0 * d, g0 * d, b0 * d, 1);
 }
 
 
-void PlottedImage::addDot(qreal x, qreal y, float r, float g, float b) {
+void PlottedImage::addDot(double x, double y, double r, double g, double b) {
 	int x0 = (int) floor(x);
 	int y0 = (int) floor(y);
 
-	float degX = x - x0, degY = y - y0;
+	double degX = x - x0, degY = y - y0;
 
-	float d00 = (1 - degX) * (1 - degY);
-	float d10 = degX * (1 - degY);
-	float d01 = (1 - degX) * degY;
-	float d11 = degX * degY;
+	double d00 = (1 - degX) * (1 - degY);
+	double d10 = degX * (1 - degY);
+	double d01 = (1 - degX) * degY;
+	double d11 = degX * degY;
 
 	addDot(x0, y0, r, g, b, d00);
 	addDot(x0, y0 + 1, r, g, b, d01);
@@ -113,16 +110,16 @@ void PlottedImage::addDot(qreal x, qreal y, float r, float g, float b) {
 	addDot(x0 + 1, y0 + 1, r, g, b, d11);
 }
 
-void PlottedImage::addDot(int x, int y, float r, float g, float b, float density) {
+void PlottedImage::addDot(int x, int y, double r, double g, double b, double density) {
 	if(x >= 0 && y >= 0 && x < width() && y < height() && density > 0) {
 		int index = x + width() * y;
 
-		float d0 = this->density[index];
-		float r0 = this->r[index];
-		float g0 = this->g[index];
-		float b0 = this->b[index];
+		double d0 = this->density[index];
+		double r0 = this->r[index];
+		double g0 = this->g[index];
+		double b0 = this->b[index];
 
-		float dt = d0 + density;
+		double dt = d0 + density;
 
 		this->r[index] = r0 * d0 / dt + r * density / dt;
 		this->g[index] = g0 * d0 / dt + g * density / dt;
@@ -132,7 +129,6 @@ void PlottedImage::addDot(int x, int y, float r, float g, float b, float density
 
 		if(dt > maxDensity) {
 			maxDensity = dt;
-			refreshNeeded = true;
 		}
 
 		updatePix(x, y);

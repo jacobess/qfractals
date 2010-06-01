@@ -12,7 +12,7 @@ IFS<T>::IFS(const Transformation<T>& t,
 		colors_(colors) {
 
 	for(int i = 0; i < affs.size(); i++) {
-		qreal d = affs[i].det();
+		double d = affs[i].det();
 
 		if(d < 0) d = -d;
 
