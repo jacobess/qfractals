@@ -13,13 +13,6 @@ class MainWindow : public QMainWindow {
 	QMenu* fileMenu;
 	QMenu* newMenu;
 
-	QAction* newMandelbrotAction;
-	QAction* newLambdaAction;
-	QAction* newTricornAction;
-	QAction* newBurningShipAction;
-	QAction* newMagnet1Action;
-	QAction* newFernAction;
-	QAction* newPendulumAction;
 	QAction* saveImageAction;
 	QAction* duplicateAction;
 	QAction* closeAction;
@@ -41,18 +34,11 @@ private slots:
 	void browseMode(bool enable);
 	void selectMode(bool enable);
 
-	void newMandelbrot();
-	void newLambda();
-	void newTricorn();
-	void newBurningShip();
-	void newMagnet1();
-	void newFern();
-	void newPendulum();
-
 	void saveImage(int tab = -1);
 	void closeTab(int tab = -1);
 	void duplicateTab(int tab = -1);
 
+	void addNew(QAction* action);
 	void addTab(const Specification& spec);
 
 private:

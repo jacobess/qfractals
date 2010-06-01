@@ -15,8 +15,12 @@
 class Generator;
 
 class Specification {
+	QString description_;
 public:
 	virtual Generator* createGenerator(int width, int height) const = 0;
+
+	const QString& description() const;
+	QString& description();
 };
 
 class SubThread;
@@ -42,7 +46,6 @@ class Generator : public QObject {
 
 	QMutex notRunningCountMutex_;
 	int notRunningCount_;
-
 
 	QMutex executionCountMutex_;
 	int executionCount_;
