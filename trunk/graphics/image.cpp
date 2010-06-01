@@ -1,6 +1,6 @@
 #include "image.h"
 
-qreal Image::normX(qreal x) const {
+double Image::normX(double x) const {
 	int w = width();
 	int h = height();
 
@@ -9,7 +9,7 @@ qreal Image::normX(qreal x) const {
 	return (x - (w - min) / 2.) / min;
 }
 
-qreal Image::normY(qreal y) const {
+double Image::normY(double y) const {
 	int w = width();
 	int h = height();
 
@@ -18,7 +18,7 @@ qreal Image::normY(qreal y) const {
 	return (y - (h - min) / 2.) / min;
 }
 
-qreal Image::denormX(qreal x0) const {
+double Image::denormX(double x0) const {
 	int w = width();
 	int h = height();
 
@@ -27,7 +27,7 @@ qreal Image::denormX(qreal x0) const {
 	return x0 * min + (w - min) / 2;
 }
 
-qreal Image::denormY(qreal y0) const {
+double Image::denormY(double y0) const {
 	int w = width();
 	int h = height();
 

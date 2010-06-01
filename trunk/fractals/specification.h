@@ -65,17 +65,17 @@ public:
 
 	void setSize(int width, int height);
 
-	qreal normX(qreal x) const;
-	qreal normY(qreal y) const;
+	double normX(double x) const;
+	double normY(double y) const;
 
-	qreal denormX(qreal x0) const;
-	qreal denormY(qreal y0) const;
+	double denormX(double x0) const;
+	double denormY(double y0) const;
 
-	virtual void scale(int cx, int cy, qreal factor) = 0;
+	virtual void scale(int cx, int cy, double factor) = 0;
 	virtual void move(int dx, int dy) = 0;
-	virtual void select(qreal wx, qreal wy, qreal hx, qreal hy, qreal x0, qreal y0) = 0;
+	virtual void select(double wx, double wy, double hx, double hy, double x0, double y0) = 0;
 
-	virtual QString pointDescription(qreal x, qreal y) = 0;
+	virtual QString pointDescription(double x, double y) = 0;
 
 signals:
 	void executionStarted(int);

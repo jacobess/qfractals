@@ -23,9 +23,9 @@ public:
 
 	void setSize(int width, int height);
 
-	void scale(int cx, int cy, qreal factor);
+	void scale(int cx, int cy, double factor);
 	void move(int dx, int dy);
-	void select(qreal wx, qreal wy, qreal hx, qreal hy, qreal x0, qreal y0);
+	void select(double wx, double wy, double hx, double hy, double x0, double y0);
 
 	void rgba(int x, int y, float& r, float& g, float& b, float& a) const;
 	void setRgba(int x, int y, float r, float g, float b, float a);

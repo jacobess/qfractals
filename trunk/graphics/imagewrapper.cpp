@@ -5,6 +5,7 @@
 ImageWrapper::ImageWrapper(int width, int height) :
 		img_(width, height, QImage::Format_ARGB32) {
 	data_ = (uint*) img_.bits();
+	std::fill(data_, data_ + width * height, 0);
 }
 
 /*ImageWrapper::ImageWrapper(const ImageWrapper &image) : Image() {
@@ -41,11 +42,11 @@ void ImageWrapper::clear() {
 }
 
 void ImageWrapper::setSize(int w, int h) {
-	qreal x0 = normX(0);
-	qreal y0 = normY(0);
+	double x0 = normX(0);
+	double y0 = normY(0);
 
-	qreal x1 = normX(width());
-	qreal y1 = normY(height());
+	double x1 = normX(width());
+	double y1 = normY(height());
 
 	QImage oldImage = img_;
 	img_ = QImage(w, h, QImage::Format_ARGB32);
@@ -67,7 +68,7 @@ void ImageWrapper::setSize(int w, int h) {
 	painter.drawImage(newRect, oldImage);
 }
 
-void ImageWrapper::scale(int cx, int cy, qreal factor) {
+void ImageWrapper::scale(int cx, int cy, double factor) {
 	QImage newImage(width(), height(), QImage::Format_ARGB32);
 
 	QPainter painter(&newImage);
@@ -99,7 +100,7 @@ void ImageWrapper::move(int dx, int dy) {
 	data_ = (uint*) img_.bits();
 }
 
-void ImageWrapper::select(qreal wx, qreal wy, qreal hx, qreal hy, qreal x0, qreal y0) {
+void ImageWrapper::select(double wx, double wy, double hx, double hy, double x0, double y0) {
 	QTransform t(wx, wy, hx, hy, x0, y0);
 
 	QImage newImage(width(), height(), QImage::Format_ARGB32);
