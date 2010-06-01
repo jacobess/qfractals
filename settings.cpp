@@ -51,7 +51,6 @@ Settings::Settings() :
 
 void Settings::initSpecs() {
         {
-		// Mandelbrot:
 		ColorPalette palette;
 
 		palette.setPeriod(1);
@@ -73,7 +72,7 @@ void Settings::initSpecs() {
 		iteration.addRROp(QString("sqr"), -1, -1);
 		iteration.addRROp(QString("add_c"), -1, -1);
 
-		specifications_["mandelbrot"] = new Mandelbrot<long double>(
+		Specification* spec = new Mandelbrot<long double>(
 				Transformation<long double>(2.6, 0, 0, 2.6, -2, -1.3),
 				base,
 				iteration,
@@ -82,6 +81,10 @@ void Settings::initSpecs() {
 				1e-6,
 				palette,
 				epsPalette);
+
+		spec->description() = "Mandelbrot Set";
+
+		specifications_.push_back(spec);
         }
 
         {
@@ -114,7 +117,7 @@ void Settings::initSpecs() {
 		iteration.addRROp(QString("lambda"), -1, -1);
 		iteration.addRROp(QString("mul_c"), -1, -1);
 
-		specifications_["lambda"] = new Mandelbrot<double>(
+		Specification* spec = new Mandelbrot<double>(
 				Transformation<double>(6, 0, 0, 6, -2, -3),
 				base,
 				iteration,
@@ -123,7 +126,11 @@ void Settings::initSpecs() {
 				1e-6,
 				palette,
 				epsPalette);
-        }
+
+		spec->description() = "Lambda";
+
+		specifications_.push_back(spec);
+	}
 
 	{
 		// Tricorn
@@ -151,7 +158,7 @@ void Settings::initSpecs() {
 		iteration.addRROp(QString("sqr"), -1, -1);
 		iteration.addRROp(QString("add_c"), -1, -1);
 
-		specifications_["tricorn"] = new Mandelbrot<double>(
+		Specification* spec = new Mandelbrot<double>(
 				Transformation<double>(4, 0, 0, 4, -2, -2),
 				base,
 				iteration,
@@ -160,6 +167,10 @@ void Settings::initSpecs() {
 				1e-6,
 				palette,
 				epsPalette);
+
+		spec->description() = "Tricorn";
+
+		specifications_.push_back(spec);
 	}
 
 	{
@@ -187,7 +198,7 @@ void Settings::initSpecs() {
 		iteration.addRROp(QString("sqr"), -1, -1);
 		iteration.addRROp(QString("add_c"), -1, -1);
 
-		specifications_["burning ship"] = new Mandelbrot<double>(
+		Specification* spec = new Mandelbrot<double>(
 				Transformation<double>(4, 0, 0, 4, -2, -2),
 				base,
 				iteration,
@@ -196,6 +207,10 @@ void Settings::initSpecs() {
 				1e-6,
 				palette,
 				epsPalette);
+
+		spec->description() = "Burning Ship";
+
+		specifications_.push_back(spec);
 	}
 
 
@@ -240,7 +255,7 @@ void Settings::initSpecs() {
 		iteration.addRRROp(QString("div"), -1, up, -1);
 		iteration.addRROp(QString("sqr"));
 
-		specifications_["magnet1"] = new Mandelbrot<double>(
+		Specification* spec = new Mandelbrot<double>(
 				Transformation<double>(6, 0, 0, 6, -2, -3),
 				base,
 				iteration,
@@ -249,6 +264,10 @@ void Settings::initSpecs() {
 				1e-6,
 				palette,
 				epsPalette);
+
+		spec->description() = "Magnet 1";
+
+		specifications_.push_back(spec);
 	}
 
 	{
@@ -265,10 +284,176 @@ void Settings::initSpecs() {
 		colors.push_back(QColor(0, 0, 255));
 		colors.push_back(QColor(255, 255, 0));
 
-		specifications_["fern"] = new IFS<double>(Transformation<double>(10.5, 0, 0, -10.5, -5, 10.25), affs, colors);
+		Specification* spec = new IFS<double>(Transformation<double>(10.5, 0, 0, -10.5, -5, 10.25), affs, colors);
+
+		spec->description() = "Fern Leaf";
+
+		specifications_.push_back(spec);
 	}
 
-        {
+	{
+		QList< Transformation<double> > affs;
+		QList<QColor> colors;
+
+		affs.push_back(Transformation<double>(0.5, 0, 0, 0.5, 0, 0));
+		affs.push_back(Transformation<double>(0.5, 0, 0, 0.5, 0, 1));
+		affs.push_back(Transformation<double>(0.5, 0, 0, 0.5, 1, 0));
+
+		colors.push_back(QColor(255, 0, 0));
+		colors.push_back(QColor(255, 255, 0));
+		colors.push_back(QColor(0, 0, 255));
+
+		Specification* spec = new IFS<double>(Transformation<double>(2.5, 0, 0, 2.5, -0.25, -0.25), affs, colors);
+
+		spec->description() = "Sierpinski 1";
+
+		specifications_.push_back(spec);
+	}
+
+	{
+		QList< Transformation<double> > affs;
+		QList<QColor> colors;
+
+		affs.push_back(Transformation<double>(0.5, 0, 0, 0.5, 0, 0));
+		affs.push_back(Transformation<double>(-0.5, 0, 0, -0.5, 1, 1.5));
+		affs.push_back(Transformation<double>(0.5, 0, 0, 0.5, 1, 0));
+
+		colors.push_back(QColor(255, 0, 0));
+		colors.push_back(QColor(255, 255, 0));
+		colors.push_back(QColor(0, 0, 255));
+
+		Specification* spec = new IFS<double>(Transformation<double>(2.5, 0, 0, 2.5, -0.25, -0.25), affs, colors);
+
+		spec->description() = "Sierpinski 2";
+
+		specifications_.push_back(spec);
+	}
+
+	{
+		QList< Transformation<double> > affs;
+		QList<QColor> colors;
+
+		affs.push_back(Transformation<double>(0, 0.5, 0.5, 0, 0, 0));
+		affs.push_back(Transformation<double>(-0.5, 0, 0, 0.5, 0, 1));
+		affs.push_back(Transformation<double>(0, 0.5, 0.5, 0, 1, 0));
+
+		colors.push_back(QColor(255, 0, 0));
+		colors.push_back(QColor(255, 255, 0));
+		colors.push_back(QColor(0, 0, 255));
+
+		Specification* spec = new IFS<double>(Transformation<double>(3.5, 0, 0, 3.5, -1.25, -1.25), affs, colors);
+
+		spec->description() = "Sierpinski 3";
+
+		specifications_.push_back(spec);
+	}
+
+	{
+		QList< Transformation<double> > affs;
+		QList<QColor> colors;
+
+		affs.push_back(Transformation<double>(0.5, 0, 0, 0.5, 0, 1));
+		affs.push_back(Transformation<double>(-0.5, 0, 0, 0.5, 2, 0));
+		affs.push_back(Transformation<double>(0.5, 0, 0, -0.5, 0, 0));
+
+		colors.push_back(QColor(255, 0, 0));
+		colors.push_back(QColor(255, 255, 0));
+		colors.push_back(QColor(0, 0, 255));
+
+		Specification* spec = new IFS<double>(Transformation<double>(3.5, 0, 0, 3.5, -0.75, -1.25), affs, colors);
+
+		spec->description() = "Sierpinski 4";
+
+		specifications_.push_back(spec);
+	}
+
+	{
+		QList< Transformation<double> > affs;
+		QList<QColor> colors;
+
+		affs.push_back(Transformation<double>(0.5, 0, 0, 0.5, 0, 0));
+		affs.push_back(Transformation<double>(-0.5, 0, 0, 0.5, 0, 1));
+		affs.push_back(Transformation<double>(0, 0.5, -0.5, 0, 1, 0));
+
+		colors.push_back(QColor(255, 0, 0));
+		colors.push_back(QColor(255, 255, 0));
+		colors.push_back(QColor(0, 0, 255));
+
+		Specification* spec = new IFS<double>(Transformation<double>(3.5, 0, 0, 3.5, -1.25, -1.25), affs, colors);
+
+		spec->description() = "Sierpinski 5";
+
+		specifications_.push_back(spec);
+	}
+
+	{
+		QList< Transformation<double> > affs;
+		QList<QColor> colors;
+
+		affs.push_back(Transformation<double>(0.5, 0, 0, 0.5, 0, 0));
+		affs.push_back(Transformation<double>(0.5, 0, 0, -0.5, 0, 2));
+		affs.push_back(Transformation<double>(0.5, 0, 0, 0.5, 1, 0));
+
+		colors.push_back(QColor(255, 0, 0));
+		colors.push_back(QColor(255, 255, 0));
+		colors.push_back(QColor(0, 0, 255));
+
+		Specification* spec = new IFS<double>(Transformation<double>(2.5, 0, 0, 2.5, -0.25, -0.25), affs, colors);
+
+		spec->description() = "Sierpinski 6";
+
+		specifications_.push_back(spec);
+	}
+
+
+	{
+		QList< Transformation<double> > affs;
+		QList<QColor> colors;
+
+		affs.push_back(Transformation<double>(1./3., 0, 0, 1./3., 0, 0));
+		affs.push_back(Transformation<double>(1./3., 0, 0, 1./3., 1, 0));
+		affs.push_back(Transformation<double>(1./3., 0, 0, 1./3., 2, 0));
+		affs.push_back(Transformation<double>(1./3., 0, 0, 1./3., 2, 1));
+		affs.push_back(Transformation<double>(1./3., 0, 0, 1./3., 2, 2));
+		affs.push_back(Transformation<double>(1./3., 0, 0, 1./3., 1, 2));
+		affs.push_back(Transformation<double>(1./3., 0, 0, 1./3., 0, 2));
+		affs.push_back(Transformation<double>(1./3., 0, 0, 1./3., 0, 1));
+
+		for(int i = 0; i < 8; i++) {
+			colors.push_back(QColor::fromHsvF(i / 8., 1, 1));
+		}
+
+		Specification* spec = new IFS<double>(Transformation<double>(3.5, 0, 0, 3.5, -0.25, -0.25), affs, colors);
+
+		spec->description() = "Sierpinski carpet";
+
+		specifications_.push_back(spec);
+	}
+
+
+	{
+		QList< Transformation<double> > affs;
+		QList<QColor> colors;
+
+		double c = 1 / sqrt(3.) * cos(M_PI / 6.);
+		double s = 1 / sqrt(3.) * sin(M_PI / 6.);
+
+		affs.push_back(Transformation<double>(c, s, s, -c, 0, 0));
+		affs.push_back(Transformation<double>(c, -s, -s, -c, c, s));
+
+		colors.push_back(QColor(255, 0, 0));
+		colors.push_back(QColor(255, 255, 0));
+
+		Specification* spec = new IFS<double>(Transformation<double>(1.5, 0, 0, -1.5, -0.25, 0.75), affs, colors);
+
+		spec->description() = "Koch curve";
+
+		specifications_.push_back(spec);
+	}
+
+
+
+	{
 		QList< Magnet<double> > magnets;
 
 		int max = 3;
@@ -293,7 +478,7 @@ void Settings::initSpecs() {
 			magnets.push_back(m);
 		}
 
-		specifications_["pendulum"] = new Pendulum<double>(
+		Specification* spec = new Pendulum<double>(
 				Transformation<double>(10, 0, 0, 10, -5, -5),
 				magnets,
 				1000, // max steps
@@ -302,7 +487,52 @@ void Settings::initSpecs() {
 				0.2,   // height
 				0.016 // gravity
 				);
-        }
+
+		spec->description() = "Pendulum 3";
+
+		specifications_.push_back(spec);
+	}
+
+	{
+		QList< Magnet<double> > magnets;
+
+		int max = 4;
+
+		double hues[max];
+
+		hues[0] = 23. / 24.;
+		hues[1] = 1. / 6.;
+		hues[2] = 1. / 3.;
+		hues[3] = 15. / 24.;
+
+		for(int i = 0; i < max; i++) {
+			ColorPalette p;
+
+			QColor color = QColor::fromHsvF(hues[i], 1, 1);
+
+			p.addColor(0, 1, 1, 1);
+			p.addColor(0.5, color.redF(), color.greenF(), color.blueF());
+			p.addColor(1, 0, 0, 0);
+
+			Magnet<double> m(2 * sin(i * 2 * M_PI / max), 2 * cos(i * 2 * M_PI / max), 0.0667, p);
+
+			magnets.push_back(m);
+		}
+
+		Specification* spec = new Pendulum<double>(
+				Transformation<double>(10, 0, 0, 10, -5, -5),
+				magnets,
+				1000, // max steps
+				0.01, // step size
+				0.03, // friction
+				0.2,   // height
+				0.016 // gravity
+				);
+
+		spec->description() = "Pendulum 4";
+
+		specifications_.push_back(spec);
+	}
 }
 
 Settings* Settings::settings() {
@@ -389,7 +619,7 @@ const QPen& Settings::selectedPointPen() const {
 	return selPtPen_;
 }
 
-const QMap<QString, Specification*>& Settings::specifications() const {
+const QList<Specification*>& Settings::specifications() const {
 	return specifications_;
 }
 

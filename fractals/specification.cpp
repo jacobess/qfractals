@@ -5,6 +5,15 @@
 #include <QVarLengthArray>
 #include <QFuture>
 
+
+const QString& Specification::description() const {
+	return description_;
+}
+
+QString& Specification::description() {
+	return description_;
+}
+
 Generator::Generator(int threadCount, bool isSelectable) :
 		isSelectable_(isSelectable),
 		threadCount_(threadCount <= 0 ? QThread::idealThreadCount() : threadCount) {

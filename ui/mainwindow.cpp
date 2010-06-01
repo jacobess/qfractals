@@ -17,30 +17,12 @@ void MainWindow::init() {
 	fileMenu = menuBar()->addMenu(tr("&File"));
 
 	newMenu = fileMenu->addMenu(tr("&New"));
-	newMandelbrotAction = newMenu->addAction("&Mandelbrot Set");
-	connect(newMandelbrotAction, SIGNAL(triggered()), this, SLOT(newMandelbrot()));
 
-	newLambdaAction = newMenu->addAction("&Lambda");
-	connect(newLambdaAction, SIGNAL(triggered()), this, SLOT(newLambda()));
+	foreach(Specification* spec , Settings::settings()->specifications()) {
+		newMenu->addAction(spec->description());
+	}
 
-	newLambdaAction = newMenu->addAction("&Tricorn");
-	connect(newLambdaAction, SIGNAL(triggered()), this, SLOT(newTricorn()));
-
-	newLambdaAction = newMenu->addAction("&BurningShip");
-	connect(newLambdaAction, SIGNAL(triggered()), this, SLOT(newBurningShip()));
-
-	newMagnet1Action = newMenu->addAction("&Magnet1");
-	connect(newMagnet1Action, SIGNAL(triggered()), this, SLOT(newMagnet1()));
-
-	newMenu->addSeparator();
-
-	newFernAction = newMenu->addAction("&Fern");
-	connect(newFernAction, SIGNAL(triggered()), this, SLOT(newFern()));
-
-	newMenu->addSeparator();
-
-	newPendulumAction = newMenu->addAction("&Pendulum");
-	connect(newPendulumAction, SIGNAL(triggered()), this, SLOT(newPendulum()));
+	connect(newMenu, SIGNAL(triggered(QAction*)), SLOT(addNew(QAction*)));
 
 	newMenu->addSeparator();
 
@@ -82,7 +64,7 @@ void MainWindow::init() {
 
 	this->setCentralWidget(tabWidget);
 
-	newMandelbrot();
+	addTab(*Settings::settings()->specifications().first());
 }
 
 void MainWindow::browseMode(bool enable) {
@@ -93,40 +75,12 @@ void MainWindow::selectMode(bool enable) {
 	Settings::settings()->setSelectionMode(enable ? 1 : 0);
 }
 
-void MainWindow::newMandelbrot() {
-	Specification* spec = Settings::settings()->specifications()[QString("mandelbrot")];
-	addTab(*spec);
-}
-
-void MainWindow::newLambda() {
-	Specification* spec = Settings::settings()->specifications()[QString("lambda")];
-	addTab(*spec);
-}
-
-void MainWindow::newTricorn() {
-	Specification* spec = Settings::settings()->specifications()[QString("tricorn")];
-	addTab(*spec);
-}
-
-void MainWindow::newBurningShip() {
-	Specification* spec = Settings::settings()->specifications()[QString("burning ship")];
-	addTab(*spec);
-}
-
-void MainWindow::newMagnet1() {
-	Specification* spec = Settings::settings()->specifications()[QString("magnet1")];
-	addTab(*spec);
-}
-
-
-void MainWindow::newFern() {
-	Specification* spec = Settings::settings()->specifications()[QString("fern")];
-	addTab(*spec);
-}
-
-void MainWindow::newPendulum() {
-	Specification* spec = Settings::settings()->specifications()[QString("pendulum")];
-	addTab(*spec);
+void MainWindow::addNew(QAction* action) {
+	foreach(Specification* spec , Settings::settings()->specifications()) {
+		if(spec->description() == action->text()) {
+			addTab(*spec);
+		}
+	}
 }
 
 void MainWindow::saveImage(int index) {
