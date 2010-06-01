@@ -223,7 +223,7 @@ void PendulumEnv<T>::calc(const T& x0, const T& y0, uchar& type, double& value) 
 		T speed = sqrt(dx * dx + dy * dy);
 		total += speed;
 
-		if(speed < 0.001 && minDistSqr < 0.001 || i >= spec_.maxStepCount() - 1) {
+                if((speed < 0.001 && minDistSqr < 0.001) || (i >= spec_.maxStepCount() - 1)) {
 			type = minDistIndex;
 			value = total / log(total + 1);
 

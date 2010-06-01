@@ -2,8 +2,8 @@
 #define IMAGE_H
 
 #include<sys/types.h>
-#include<qtransform>
-#include<qimage>
+#include<qtransform.h>
+#include<qimage.h>
 
 class Image {
 public:
