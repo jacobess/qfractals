@@ -29,8 +29,13 @@ void MainWindow::init() {
 	newLambdaAction = newMenu->addAction("&BurningShip");
 	connect(newLambdaAction, SIGNAL(triggered()), this, SLOT(newBurningShip()));
 
-	newLambdaAction = newMenu->addAction("&Magnet1");
-	connect(newLambdaAction, SIGNAL(triggered()), this, SLOT(newMagnet1()));
+	newMagnet1Action = newMenu->addAction("&Magnet1");
+	connect(newMagnet1Action, SIGNAL(triggered()), this, SLOT(newMagnet1()));
+
+	newMenu->addSeparator();
+
+	newFernAction = newMenu->addAction("&Fern");
+	connect(newFernAction, SIGNAL(triggered()), this, SLOT(newFern()));
 
 	newMenu->addSeparator();
 
@@ -110,6 +115,12 @@ void MainWindow::newBurningShip() {
 
 void MainWindow::newMagnet1() {
 	Specification* spec = Settings::settings()->specifications()[QString("magnet1")];
+	addTab(*spec);
+}
+
+
+void MainWindow::newFern() {
+	Specification* spec = Settings::settings()->specifications()[QString("fern")];
 	addTab(*spec);
 }
 

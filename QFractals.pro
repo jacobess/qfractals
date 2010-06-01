@@ -21,6 +21,8 @@ SOURCES += main.cpp \
     ui/imagecontrolwidget.cpp \
     ui/resizedialog.cpp \
     fractals/pendulum.cpp \
+    fractals/plotting.cpp \
+    fractals/ifs.cpp \
     math/interpreter.cpp
 HEADERS += graphics/colorpalette.h \
     math/transformation.h \
@@ -36,6 +38,8 @@ HEADERS += graphics/colorpalette.h \
     fractals/viewport.h \
     fractals/rendering.h \
     fractals/mandelbrot.h \
+    fractals/plotting.h \
+    fractals/ifs.h \
     ui/imagecontrolwidget.h \
     ui/resizedialog.h \
     fractals/pendulum.h \
