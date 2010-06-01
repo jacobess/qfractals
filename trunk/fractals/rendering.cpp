@@ -115,8 +115,8 @@ void RenderingGenerator<T>::calcPix(int x, int y, int i, int threadIndex, Render
 		double val;
 
 		if(!renderImg_->pix(x, y, i, type, val)) {
-			qreal x0 = this->normX(renderImg_->pointX(x, i));
-			qreal y0 = this->normY(renderImg_->pointY(y, i));
+			double x0 = this->normX(renderImg_->pointX(x, i));
+			double y0 = this->normY(renderImg_->pointY(y, i));
 
 			T tx = specification().transformation().toX(x0, y0);
 			T ty = specification().transformation().toY(x0, y0);

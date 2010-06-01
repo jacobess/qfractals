@@ -2,6 +2,7 @@
 
 #include "fractals/mandelbrot.h"
 #include "fractals/pendulum.h"
+#include "fractals/ifs.h"
 
 Settings* Settings::singleton_ = 0;
 
@@ -250,6 +251,23 @@ void Settings::initSpecs() {
 				epsPalette);
 	}
 
+	{
+		QList< Transformation<double> > affs;
+		QList<QColor> colors;
+
+		affs.push_back(Transformation<double>(0, 0, 0, 0.16, 0, 0));
+		affs.push_back(Transformation<double>(0.2, -0.26, 0.23, 0.22, 0, 1.6));
+		affs.push_back(Transformation<double>(-0.15, 0.28, 0.26, 0.24, 0, 0.44));
+		affs.push_back(Transformation<double>(0.85, 0.04, -0.04, 0.85, 0, 1.6));
+
+		colors.push_back(QColor(255, 255, 255));
+		colors.push_back(QColor(255, 0, 0));
+		colors.push_back(QColor(0, 0, 255));
+		colors.push_back(QColor(255, 255, 0));
+
+		specifications_["fern"] = new IFS<double>(Transformation<double>(10.5, 0, 0, -10.5, -5, 10.25), affs, colors);
+	}
+
         {
 		QList< Magnet<double> > magnets;
 
@@ -284,7 +302,6 @@ void Settings::initSpecs() {
 				0.2,   // height
 				0.016 // gravity
 				);
-
         }
 }
 

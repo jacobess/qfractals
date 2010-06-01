@@ -87,58 +87,6 @@ void Generator::finishCommit() {
 	rwLock_.unlock();
 }
 
-/*void Generator::run() {
-
-	QVarLengthArray< SubThread* > subthreads;
-	subthreads.resize(threadCount_);
-
-	for(int i = 0; i < threadCount_; i++) {
-		subthreads[i] = new SubThread(*this, i);
-	}
-
-	restart_ = false;
-	abort_ = false;
-	dispose_ = false;
-	runningMutex_.lock();
-
-	int executionIndex = 0;
-
-	forever {
-		emit executionStarted(executionIndex);
-
-		init();
-
-		QTime time;
-		time.start();
-
-		for(int i = 0; i < threadCount_; i++) {
-			threadPool.start(subthreads[i]);
-		}
-
-		threadPool.waitForDone();
-
-		qDebug("Threads finished after %d ms", time.elapsed());
-
-		if(!restart_) {
-			refreshMutex_.lock();
-			img().refreshImage();
-			refreshMutex_.unlock();
-
-			emit executionStopped(executionIndex++);
-		}
-
-		waitCondition_.wait(&runningMutex_);
-
-		if(dispose_) {
-			break;
-		}
-	}
-
-	for(int i = 0; i < threadCount_; i++) {
-		delete subthreads[i];
-	}
-}*/
-
 void Generator::abort() {
 	abortMutex_.lock();
 	abort_ = true;
@@ -226,7 +174,6 @@ void SubThread::run() {
 
 		if(!parent_.abort_) parent_.exec(index_);
 
-		// TODO In here count and refresh if last thread
 		parent_.notRunningCountMutex_.lock();
 
 		int i = ++parent_.notRunningCount_;
@@ -248,9 +195,9 @@ void SubThread::run() {
 			parent_.notRunningCountMutex_.unlock();
 		}
 
-		qDebug("Thread %d finished as %d th thread after %d ms", index_, i, time.elapsed());
+		//qDebug("Thread %d finished as %d th thread after %d ms", index_, i, time.elapsed());
 
-		parent_.waitCondition_.wait(&parent_.rwLock_); // Mark
+		parent_.waitCondition_.wait(&parent_.rwLock_);
 
 		parent_.refreshMutex_.unlock();
 	}
