@@ -15,7 +15,6 @@ ImageControlWidget::ImageControlWidget(QWidget* parent, const Specification& spe
 		runningIndex_(0)
 {
 	init();
-	refreshPool_.setMaxThreadCount(1);
 	generator_->launch();
 }
 
@@ -299,9 +298,11 @@ void ImageControlWidget::updateProgress() {
 }
 
 void ImageControlWidget::refreshBackground() {
-	QRunnable* refresher = new RefreshBackground(*generator_);
-	refresher->setAutoDelete(true);
-	refreshPool_.start(refresher);
+	// TODO Use only one thread
+	//QThread* refresher = new RefreshBackground(*generator_);
+	//refresher->start(QThread::LowPriority);
+	//delete refresher;
+	generator_->refresh();
 }
 
 void ImageControlWidget::setStatus(QString message) {

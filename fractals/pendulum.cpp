@@ -68,7 +68,7 @@ Generator* Pendulum<T>::createGenerator(int width, int height) const {
 }
 
 template<class T>
-RenderingEnv<T>* Pendulum<T>::createEnv() const {
+PendulumEnv<T>* Pendulum<T>::createEnv() const {
 	return new PendulumEnv<T>(*this);
 }
 
@@ -241,6 +241,39 @@ void PendulumEnv<T>::calc(const T& x0, const T& y0, uchar& type, double& value) 
 		nay = 0;
 	}
 }
+
+
+template<class T>
+bool PendulumEnv<T>::orbit(T& x, T& y, double& r, double& g, double& b) {
+	uchar type;
+	double val;
+
+	calc(x, y, type, val);
+
+	if(type < spec_.magnets().size()) {
+		double a;
+		spec_.magnets().at(type).palette().color(1, r, g, b, a);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+template<class T>
+int PendulumEnv<T>::length() const {
+	return n_;
+}
+
+template<class T>
+const T& PendulumEnv<T>::x(int i) const {
+	return xs_[i];
+}
+
+template<class T>
+const T& PendulumEnv<T>::y(int i) const {
+	return ys_[i];
+}
+
 
 template<class T>
 PendulumGenerator<T>::PendulumGenerator(int width, int height, const Pendulum<T>& spec):

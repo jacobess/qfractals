@@ -31,7 +31,7 @@ class Generator : public QObject {
 	const bool isSelectable_;
 	const int threadCount_;
 
-	QThreadPool threadPool_;
+	QList<QThread*> threads_;
 
 	// Used to control the state the threads
 	bool restart_;
@@ -126,7 +126,7 @@ private:
 friend class SubThread;
 };
 
-class SubThread : public QRunnable {
+class SubThread : public QThread {
 	Generator& parent_;
 	const int index_;
 

@@ -35,8 +35,6 @@ class ImageControlWidget : public QWidget
 	QTimer updateTimer_;
 	QTimer refreshTimer_;
 
-	QThreadPool refreshPool_;
-
 	int runningIndex_;
 	QMutex mutex_;
 
@@ -72,7 +70,7 @@ private:
 	void init();
 };
 
-class RefreshBackground : public QRunnable {
+class RefreshBackground : public QThread {
 	Generator& generator_;
 
 public:

@@ -10,7 +10,7 @@ Plotting<T>::~Plotting() {}
 
 template<class T>
 PlottingGenerator<T>::PlottingGenerator(int width, int height) :
-		ViewportGenerator<double>(-1),
+		ViewportGenerator<T>(-1),
 		img_(width, height) {}
 
 
@@ -40,29 +40,29 @@ void PlottingGenerator<T>::init() {
 	img_.init();
 }
 
-
 template<class T>
-void PlottingGenerator<T>::exec(int) {
-	PlottingEnv<T>* env = specification().createEnv();
+double PlottingGenerator<T>::addDot(const T &x, const T &y, double r, double g, double b) {
+	T tx = specification().transformation().fromX(x, y);
+	T ty = specification().transformation().fromY(x, y);
 
-	while(!this->isAborted()) {
-		T x, y;
-		double r, g, b;
+	double x0 = this->denormX(tx);
+	double y0 = this->denormY(ty);
 
-		env->next(x, y, r, g, b);
+	double dx = x0 < 0 ? -x0 : this->width() - 1 < x0 ? x0 - this->width() + 1 : 1;
 
-		T tx = specification().transformation().fromX(x, y);
-		T ty = specification().transformation().fromY(x, y);
+	double dy = y0 < 0 ? -y0 : this->height() - 1 < y0 ? y0 - this->height() + 1 : 1;
 
-		double x0 = this->denormX(tx);
-		double y0 = this->denormY(ty);
-
+	if(dx <= 0 || dy <= 0) {
+		return 0;
+	} else {
 		img_.addDot(x0, y0, r, g, b);
+		return dx * dy;
 	}
-
-	delete env;
 }
 
 template class Plotting<double>;
 template class PlottingGenerator<double>;
-template class PlottingEnv<double>;
+
+
+template class Plotting<long double>;
+template class PlottingGenerator<long double>;

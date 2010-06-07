@@ -75,14 +75,17 @@ void PlottedImage::updatePix(int x, int y) {
 
 	double d;
 
+	// TODO Add parameter to determine whether d should be
+	// * always 1
+	// * linear
+	// * logarithmic
+	// * something else?
 	if(maxDensity <= 1) {
 		d = density[index];
 	} else if(density[index] <= 1) {
 		d = density[index] / maxDensity;
 	} else {
 		d = log(density[index]) / log(maxDensity);
-
-		//d = log(d * 5 + 1) / log(6);
 	}
 
 	double r0 = r[index];
