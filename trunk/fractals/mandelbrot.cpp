@@ -100,13 +100,14 @@ RenderingGenerator<T>* Mandelbrot<T>::createGenerator(int width, int height) con
 }
 
 template<class T>
-RenderingEnv<T>* Mandelbrot<T>::createEnv() const {
+MandelbrotEnv<T>* Mandelbrot<T>::createEnv() const {
 	return new MandelbrotEnv<T>(*this);
 }
 
+// TODO parametize
 template<class T>
 MandelbrotEnv<T>::MandelbrotEnv(const Mandelbrot<T>& spec) :
-	spec_(spec), xs_(new T[10240]), ys_(new T[10240]) {}
+	spec_(spec), xs_(new T[spec.maxIterations()]), ys_(new T[spec.maxIterations()]) {}
 
 template<class T>
 MandelbrotEnv<T>::~MandelbrotEnv() {
@@ -218,6 +219,46 @@ void MandelbrotEnv<T>::calc(const T& x, const T& y, uchar& type, double& value) 
 
 	n_ = maxIter;
 }
+
+template<class T>
+bool MandelbrotEnv<T>::orbit(T& x, T& y, double& r, double& g, double& b) {
+	uchar type;
+	double value;
+
+	calc(x, y, type, value);
+
+	if(type == 1) {
+		double a;
+
+		// Logarithmic transfer
+		if(value > 1) {
+			value = log(value);
+		} else {
+			value = value - 1;
+		}
+
+		spec_.bailoutPalette_.color(value, r, g, b, a);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+template<class T>
+int MandelbrotEnv<T>::length() const {
+	return n_;
+}
+
+template<class T>
+const T& MandelbrotEnv<T>::x(int i) const {
+	return xs_[i];
+}
+
+template<class T>
+const T& MandelbrotEnv<T>::y(int i) const {
+	return ys_[i];
+}
+
 
 template<class T>
 MandelbrotGenerator<T>::MandelbrotGenerator(int width, int height, const Mandelbrot<T>& spec) :

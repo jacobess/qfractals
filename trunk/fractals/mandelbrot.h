@@ -2,6 +2,7 @@
 #define MANDELBROT_H
 
 #include "rendering.h"
+#include "orbitplotting.h"
 #include "graphics/colorpalette.h"
 
 #include "math/interpreter.h"
@@ -10,10 +11,33 @@ template<class T>
 class MandelbrotGenerator;
 
 template<class T>
-class MandelbrotEnv;
+class Mandelbrot;
 
 template<class T>
-class Mandelbrot : public Rendering<T>
+class MandelbrotEnv : public RenderingEnv<T>, public OrbitPlottingEnv<T> {
+	const Mandelbrot<T>& spec_;
+
+	// Orbit
+	T* xs_;
+	T* ys_;
+
+	int n_;
+
+public:
+	MandelbrotEnv(const Mandelbrot<T>& spec);
+	virtual ~MandelbrotEnv();
+
+	void calc(const T& x, const T& y, uchar& type, double& value);
+
+	bool orbit(T& x, T& y, double& r, double& g, double& b);
+
+	int length() const;
+	const T& x(int i) const;
+	const T& y(int i) const;
+};
+
+template<class T>
+class Mandelbrot : public Rendering<T>, public OrbitPlottable<T>
 {
 	QList< Interpreter<T> > base_;
 	Interpreter<T> iteration_;
@@ -42,7 +66,7 @@ public:
 
 	RenderingGenerator<T>* createGenerator(int width, int height) const;
 
-	RenderingEnv<T>* createEnv() const;
+	MandelbrotEnv<T>* createEnv() const;
 
 	const QList< Interpreter<T> >& base() const;
 	QList< Interpreter<T> >& base();
@@ -64,23 +88,11 @@ public:
 
 	const ColorPalette& epsilonPalette() const;
 	ColorPalette& epsilonPalette();
+
+friend class MandelbrotEnv<T>;
 };
 
-template<class T>
-class MandelbrotEnv : public RenderingEnv<T> {
-	const Mandelbrot<T>& spec_;
 
-	// Orbit
-	T* xs_;
-	T* ys_;
-
-	int n_;
-
-public:
-	MandelbrotEnv(const Mandelbrot<T>& spec);
-	virtual ~MandelbrotEnv();
-	void calc(const T& x, const T& y, uchar& type, double& value);
-};
 
 template<class T>
 class MandelbrotGenerator : public RenderingGenerator<T>

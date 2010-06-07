@@ -5,19 +5,12 @@
 #include "graphics/plottedimage.h"
 
 template<class T>
-class PlottingEnv {
-public:
-	virtual void next(T& x, T& y, double& r, double& g, double& b) = 0;
-};
-
-template<class T>
 class Plotting : public Viewport<T> {
 public:
 	Plotting(const Transformation<T>& t);
 	virtual ~Plotting();
 
 	virtual Generator* createGenerator(int width, int height) const = 0;
-	virtual PlottingEnv<T>* createEnv() const = 0;
 };
 
 template<class T>
@@ -40,7 +33,7 @@ protected:
 
 	void init();
 
-	void exec(int index);
+	double addDot(const T& x, const T& y, double r, double g, double b);
 };
 
 #endif // PLOTGENERATOR_H

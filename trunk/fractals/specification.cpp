@@ -17,7 +17,6 @@ QString& Specification::description() {
 Generator::Generator(int threadCount, bool isSelectable) :
 		isSelectable_(isSelectable),
 		threadCount_(threadCount <= 0 ? QThread::idealThreadCount() : threadCount) {
-	threadPool_.setMaxThreadCount(threadCount_);
 	notRunningCount_ = 0;
 }
 
@@ -71,7 +70,11 @@ void Generator::launch() {
 	abort_ = restart_ = dispose_ = false;
 
 	for(int i = 0; i < threadCount_; i++) {
-		threadPool_.start(new SubThread(*this, i));
+		QThread* thread = new SubThread(*this, i);
+
+		threads_.push_back(thread);
+
+		thread->start(QThread::LowestPriority);
 	}
 }
 
@@ -137,7 +140,10 @@ void Generator::dispose() {
 
 	rwLock_.unlock();
 
-	threadPool_.waitForDone();
+	foreach(QThread* thread , threads_) {
+		thread->wait();
+		delete thread;
+	}
 }
 
 void Generator::refresh() {
@@ -169,9 +175,7 @@ void Generator::emitStarted() {
 
 SubThread::SubThread(Generator &parent, int index) :
 		parent_(parent),
-		index_(index) {
-	setAutoDelete(true);
-}
+		index_(index) {}
 
 void SubThread::run() {
 	parent_.rwLock_.lockForRead();
@@ -204,7 +208,7 @@ void SubThread::run() {
 			parent_.notRunningCountMutex_.unlock();
 		}
 
-		//qDebug("Thread %d finished as %d th thread after %d ms", index_, i, time.elapsed());
+		qDebug("Thread %d finished as %d th thread after %d ms", index_, i, time.elapsed());
 
 		parent_.waitCondition_.wait(&parent_.rwLock_);
 

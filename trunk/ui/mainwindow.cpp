@@ -116,6 +116,6 @@ void MainWindow::closeTab(int index) {
 
 void MainWindow::addTab(const Specification& spec) {
 	ImageControlWidget* imgWidget = new ImageControlWidget(this, spec);
-	tabWidget->addTab(imgWidget, tr("Tab"));
+	tabWidget->addTab(imgWidget, spec.description());
 	tabWidget->setCurrentWidget(imgWidget);
 }

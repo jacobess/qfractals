@@ -7,6 +7,9 @@
 #include "plotting.h"
 
 template<class T>
+class IFSGenerator;
+
+template<class T>
 class IFSEnv;
 
 template<class T>
@@ -23,23 +26,8 @@ public:
 	    const QList<QColor>& colors);
 
 	Generator* createGenerator(int width, int height) const;
-	IFSEnv<T>* createEnv() const;
 
-friend class IFSEnv<T>;
-};
-
-template<class T>
-class IFSEnv : public PlottingEnv<T> {
-	const IFS<T>& ifs_;
-
-	T x_;
-	T y_;
-
-	double r_, g_, b_;
-
-public:
-	IFSEnv(const IFS<T>& ifs);
-	void next(T& x, T& y, double& r, double& g, double& b);
+friend class IFSGenerator<T>;
 };
 
 template<class T>
@@ -51,6 +39,8 @@ public:
 	const IFS<T>& specification() const;
 
 protected:
+	void exec(int);
+
 	IFS<T>& spec();
 };
 

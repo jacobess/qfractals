@@ -4,7 +4,11 @@
 #include <QList>
 
 #include "rendering.h"
+#include "orbitplotting.h"
 #include "graphics/colorpalette.h"
+
+template<class T>
+class Pendulum;
 
 template<class T>
 class Magnet
@@ -29,8 +33,33 @@ public:
 	ColorPalette& palette();
 };
 
+
 template<class T>
-class Pendulum : public Rendering<T>
+class PendulumEnv : public RenderingEnv<T>, public OrbitPlottingEnv<T> {
+	const Pendulum<T>& spec_;
+
+	// Orbit
+	int magnet_;
+
+	T* xs_;
+	T* ys_;
+
+	int n_;
+public:
+	PendulumEnv(const Pendulum<T>& spec);
+	virtual ~PendulumEnv();
+	void calc(const T& x0, const T& y0, uchar& type, double& value);
+
+	bool orbit(T& x, T& y, double& r, double& g, double& b);
+
+	int length() const;
+	const T& x(int i) const;
+	const T& y(int i) const;
+};
+
+
+template<class T>
+class Pendulum : public Rendering<T>, public OrbitPlottable<T>
 {
 	QList< Magnet<T> > magnets_;
 	int maxStepCount_;
@@ -40,17 +69,17 @@ class Pendulum : public Rendering<T>
 	T gravity_;
 
 public:
-        Pendulum(const Transformation<T>& t,
-                 const QList< Magnet<T> >& magnets,
+	Pendulum(const Transformation<T>& t,
+		 const QList< Magnet<T> >& magnets,
 		 int maxStepCount,
 		 const T& stepSize,
 		 const T& friction,
 		 const T& height,
 		 const T& gravity);
 
-        Generator* createGenerator(int width, int height) const;
+	Generator* createGenerator(int width, int height) const;
 
-        RenderingEnv<T>* createEnv() const;
+	PendulumEnv<T>* createEnv() const;
 
 	const QList< Magnet<T> >& magnets() const;
 	QList< Magnet<T> >& magnets();
@@ -69,21 +98,6 @@ public:
 
 	const T& gravity() const;
 	T& gravity();
-};
-
-template<class T>
-class PendulumEnv : public RenderingEnv<T> {
-	const Pendulum<T>& spec_;
-
-	// Orbit
-	T* xs_;
-	T* ys_;
-
-	int n_;
-public:
-	PendulumEnv(const Pendulum<T>& spec);
-	virtual ~PendulumEnv();
-	void calc(const T& x0, const T& y0, uchar& type, double& value);
 };
 
 template<class T>
