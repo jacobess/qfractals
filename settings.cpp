@@ -82,9 +82,7 @@ void Settings::initSpecs() {
 				palette,
 				epsPalette);
 
-		//spec->description() = "Mandelbrot Set";
-
-		specifications_.push_back(spec);
+		specifications_["Mandelbrot"] = spec;
         }
 
         {
@@ -127,9 +125,7 @@ void Settings::initSpecs() {
 				palette,
 				epsPalette);
 
-		//spec->description() = "Lambda";
-
-		specifications_.push_back(spec);
+		specifications_["Lamdba"] = spec;
 	}
 
 	{
@@ -168,9 +164,7 @@ void Settings::initSpecs() {
 				palette,
 				epsPalette);
 
-		//spec->description() = "Tricorn";
-
-		specifications_.push_back(spec);
+		specifications_["Tricorn"] = spec;
 	}
 
 	{
@@ -208,9 +202,7 @@ void Settings::initSpecs() {
 				palette,
 				epsPalette);
 
-		//spec->description() = "Burning Ship";
-
-		specifications_.push_back(spec);
+		specifications_["Burning Ship"] = spec;
 	}
 
 
@@ -265,9 +257,7 @@ void Settings::initSpecs() {
 				palette,
 				epsPalette);
 
-		//spec->description() = "Magnet 1";
-
-		specifications_.push_back(spec);
+		specifications_["Magnet 1"] = spec;
 	}
 
 	{
@@ -305,15 +295,7 @@ void Settings::initSpecs() {
 				0.016 // gravity
 				);
 
-		//spec->description() = "Pendulum 3";
-
-		specifications_.push_back(spec);
-
-		Specification* buddaSpec = new OrbitPlotting<double>(Transformation<double>(10, 0, 0, 10, -5, -5), *spec);
-
-		//buddaSpec->description() = "Buddhabrot (Pendulum 3)";
-
-		specifications_.push_back(buddaSpec);
+		specifications_["Pendulum 3"] = spec;
 	}
 
 	{
@@ -352,9 +334,7 @@ void Settings::initSpecs() {
 				0.016 // gravity
 				);
 
-		//spec->description() = "Pendulum 4";
-
-		specifications_.push_back(spec);
+		specifications_["Pendulum 4"] = spec;
 	}
 
 	{
@@ -373,9 +353,7 @@ void Settings::initSpecs() {
 
 		Specification* spec = new IFS<double>(Transformation<double>(10.5, 0, 0, -10.5, -5, 10.25), affs, colors);
 
-		//spec->description() = "Fern Leaf";
-
-		specifications_.push_back(spec);
+		specifications_["Fern Leaf"] = spec;
 	}
 
 	{
@@ -392,9 +370,7 @@ void Settings::initSpecs() {
 
 		Specification* spec = new IFS<double>(Transformation<double>(1.25, 0, 0, 1.25, -0.125, -0.125), affs, colors);
 
-		//spec->description() = QString("Sierpinski triangle");
-
-		specifications_.push_back(spec);
+		specifications_["Sierpinski"] = spec;
 	}
 
 	{
@@ -416,9 +392,7 @@ void Settings::initSpecs() {
 
 		Specification* spec = new IFS<double>(Transformation<double>(1.25, 0, 0, -1.25, -0.125, 1.125), affs, colors);
 
-		//spec->description() = "Tree";
-
-		specifications_.push_back(spec);
+		specifications_["Tree"] = spec;
 	}
 
 
@@ -440,9 +414,7 @@ void Settings::initSpecs() {
 
 		Specification* spec = new IFS<double>(Transformation<double>(7, 0, 0, -7, -3.5, 3.5), affs, colors);
 
-		//spec->description() = "Marble Leaf";
-
-		specifications_.push_back(spec);
+		specifications_["Marble Leaf"] = spec;
 	}
 
 	{
@@ -484,9 +456,7 @@ void Settings::initSpecs() {
 
 		Specification* spec = new OrbitPlotting<double>(Transformation<double>(3, 0, 0, 3, -2, -1.5), *fractal);
 
-		//spec->description() = "Buddhabrot (Mandelbrot)";
-
-		specifications_.push_back(spec);
+		specifications_["Buddhabrot"] = spec;
 	}
 
 
@@ -531,9 +501,7 @@ void Settings::initSpecs() {
 
 		Specification* spec = new OrbitPlotting<double>(Transformation<double>(4, 0, 0, 4, -2, -2), *fractal);
 
-		//spec->description() = "Buddhabrot (Tricorn)";
-
-		specifications_.push_back(spec);
+		specifications_["Buddhabrot (Tricorn)"] = spec;
 	}
 
 	{
@@ -576,9 +544,7 @@ void Settings::initSpecs() {
 
 		Specification* spec = new OrbitPlotting<double>(Transformation<double>(4, 0, 0, 4, -2, -2), *fractal);
 
-		//spec->description() = "Buddhabrot (Burning Ship)";
-
-		specifications_.push_back(spec);
+		specifications_["Buddhabrot (Burning Ship)"] = spec;
 	}
 
 	{
@@ -630,9 +596,7 @@ void Settings::initSpecs() {
 
 		Specification* spec = new OrbitPlotting<double>(Transformation<double>(10, 0, 0, 10, -5, -5), *fractal);
 
-		//spec->description() = "Buddhabrot (Magnet)";
-
-		specifications_.push_back(spec);
+		specifications_["Buddhabrot (Magnet 1)"] = spec;
 	}
 }
 
@@ -720,7 +684,7 @@ const QPen& Settings::selectedPointPen() const {
 	return selPtPen_;
 }
 
-const QList<Specification*>& Settings::specifications() const {
+const QMap<QString, Specification*>& Settings::specifications() const {
 	return specifications_;
 }
 

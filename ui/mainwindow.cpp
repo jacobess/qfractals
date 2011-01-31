@@ -18,8 +18,8 @@ void MainWindow::init() {
 
 	newMenu = fileMenu->addMenu(tr("&New"));
 
-	foreach(Specification* spec , Settings::settings()->specifications()) {
-		newMenu->addAction(spec->title());
+	foreach(QString s , Settings::settings()->specifications().keys()) {
+		newMenu->addAction(s);
 	}
 
 	connect(newMenu, SIGNAL(triggered(QAction*)), SLOT(addNew(QAction*)));
@@ -64,7 +64,7 @@ void MainWindow::init() {
 
 	this->setCentralWidget(tabWidget);
 
-	addTab(*Settings::settings()->specifications().first());
+	addTab("Mandelbrot", *Settings::settings()->specifications()["Mandelbrot"]);
 }
 
 void MainWindow::browseMode(bool enable) {
@@ -76,11 +76,9 @@ void MainWindow::selectMode(bool enable) {
 }
 
 void MainWindow::addNew(QAction* action) {
-	foreach(Specification* spec , Settings::settings()->specifications()) {
-		if(spec->title() == action->text()) {
-			addTab(*spec);
-		}
-	}
+	Specification* spec = Settings::settings()->specifications()[action->text()];
+
+	if(spec != 0) addTab(action->text(), *spec);
 }
 
 void MainWindow::saveImage(int index) {
@@ -94,17 +92,17 @@ void MainWindow::saveImage(int index) {
 }
 
 void MainWindow::duplicateTab(int index) {
-	QWidget* widget = index == -1? tabWidget->currentWidget() : tabWidget->widget(index);
+	QWidget* widget = tabWidget->widget(index);
 
 	ImageControlWidget* imgWidget = dynamic_cast<ImageControlWidget*>(widget);
 
 	if(imgWidget != 0) {
-		addTab(imgWidget->specification());
+		addTab(tabWidget->tabText(index), imgWidget->specification());
 	}
 }
 
 void MainWindow::closeTab(int index) {
-	QWidget* widget = index == -1? tabWidget->currentWidget() : tabWidget->widget(index);
+	QWidget* widget = tabWidget->widget(index);
 
 	ImageControlWidget* imgWidget = dynamic_cast<ImageControlWidget*>(widget);
 
@@ -114,8 +112,8 @@ void MainWindow::closeTab(int index) {
 	}
 }
 
-void MainWindow::addTab(const Specification& spec) {
+void MainWindow::addTab(QString name, const Specification& spec) {
 	ImageControlWidget* imgWidget = new ImageControlWidget(this, spec);
-	tabWidget->addTab(imgWidget, spec.title());
+	tabWidget->addTab(imgWidget, name);
 	tabWidget->setCurrentWidget(imgWidget);
 }

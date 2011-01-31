@@ -39,7 +39,7 @@ private slots:
 	void duplicateTab(int tab = -1);
 
 	void addNew(QAction* action);
-	void addTab(const Specification& spec);
+	void addTab(QString name, const Specification& spec);
 
 private:
 	void init();

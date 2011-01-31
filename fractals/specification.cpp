@@ -104,8 +104,7 @@ void Generator::run() {
 	}
 
 	for(int i = 0; i < threadCount_; i++) {
-		// TODO Set priority
-		threads[i]->start();
+		threads[i]->start(QThread::LowPriority);
 	}
 
 	// Wait until all threads are in waiting position

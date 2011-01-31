@@ -4,6 +4,7 @@
 #include "resizedialog.h"
 
 #include <QtConcurrentRun>
+#include <QtConcurrentRun>
 
 #define ABS(x)	((x) >= 0 ? (x) : -(x))
 
@@ -115,7 +116,7 @@ void ImageControlWidget::init() {
 
 	connect(&updateTimer_, SIGNAL(timeout()), selectableWidget_, SLOT(repaint()));
 	connect(&updateTimer_, SIGNAL(timeout()), this, SLOT(updateProgress()));
-	connect(&refreshTimer_, SIGNAL(timeout()), this, SLOT(refreshBackground()));
+	connect(&refreshTimer_, SIGNAL(timeout()), this, SLOT(refreshBG()));
 
 	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(terminate()));
 }
@@ -299,12 +300,14 @@ void ImageControlWidget::updateProgress() {
 	progressBar_->setValue(progress);
 }
 
-void ImageControlWidget::refreshBackground() {
-	// TODO Use only one thread
-	//QThread* refresher = new RefreshBackground(*generator_);
-	//refresher->start(QThread::LowPriority);
-	//delete refresher;
-	generator_->tryRefresh();
+void ImageControlWidget::refreshBG() {
+	// TODO Why does this not work directly?
+	//QtConcurrent::run(*generator_, &Generator::tryRefresh);
+	QtConcurrent::run(refreshImage, generator_);
+}
+
+void refreshImage(Generator* generator) {
+	generator->tryRefresh();
 }
 
 void ImageControlWidget::setStatus(QString message) {
@@ -366,11 +369,4 @@ void ImageControlWidget::saveImage() {
 			}
 		}
 	}
-}
-
-RefreshBackground::RefreshBackground(Generator &generator) :
-		generator_(generator) {}
-
-void RefreshBackground::run() {
-	generator_.tryRefresh();
 }
