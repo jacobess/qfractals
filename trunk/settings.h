@@ -40,7 +40,7 @@ class Settings {
 	int selectionMode_;
 
 	// Settings
-	QList<Specification*> specifications_;
+	QMap<QString, Specification*> specifications_;
 
 	int defaultWidth_;
 	int defaultHeight_;
@@ -54,7 +54,7 @@ private:
 public:
 	static Settings* settings();
 
-	const QList<Specification*>& specifications() const;
+	const QMap<QString, Specification*>& specifications() const;
 
 	int updateInterval() const;
 	int refreshInterval() const;

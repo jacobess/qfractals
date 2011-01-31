@@ -114,7 +114,6 @@ class ImageGenerator;
 class Specification {
 public:
 	virtual ImageGenerator* createGenerator(int width, int height) const = 0;
-	virtual QString title() const { return "TODO"; }
 };
 
 class ImageGenerator : public Generator {

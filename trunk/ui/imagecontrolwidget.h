@@ -8,8 +8,8 @@
 #include "selectablewidget.h"
 #include "fractals/specification.h"
 
-// TODO: Resize dialog
-// Unify cancel and resume-button
+void refreshImage(Generator* generator);
+
 
 class ImageControlWidget : public QWidget
 {
@@ -64,19 +64,10 @@ private slots:
 	void updateProgress();
 	void setStatus(QString message);
 	void showResizeDialog();
-	void refreshBackground();
+	void refreshBG();
 
 private:
 	void init();
-};
-
-class RefreshBackground : public QThread {
-	Generator& generator_;
-
-public:
-	RefreshBackground(Generator& generator);
-protected:
-	void run();
 };
 
 #endif // IMAGECONTROLWIDGET_H

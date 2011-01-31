@@ -132,7 +132,7 @@ void RenderingGenerator<T>::clearData() {
 
 template<class T>
 void RenderingGenerator<T>::refreshUnsafe() {
-	// TODO This is very slow and takes more than 1 second
+	qDebug("refresh");
 	for(int y = 0; y < this->height() && !this->isInterrupted(); y++) {
 		for(int x = 0; x < this->width() && !this->isInterrupted(); x++) {
 			updatePix(x, y);
