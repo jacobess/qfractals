@@ -3,12 +3,12 @@
 
 #include <QtGui>
 
-#include "fractals/specification.h"
+#include "fractals/viewport.h"
 
 class SelectableWidget: public QWidget {
 	Q_OBJECT
 
-	Generator* generator_;
+	ViewportProxy* vp_;
 
 	// -1 = not selected, 0/1 yes, value is the select mode
 	int hasSelection_;
@@ -24,7 +24,7 @@ class SelectableWidget: public QWidget {
 	int selectedPointIndex_;
 
 public:
-	SelectableWidget(QWidget *parent, Generator* generator);
+	SelectableWidget(QWidget *parent, ViewportProxy* vp);
 
 	void wheelEvent(QWheelEvent *event);
 

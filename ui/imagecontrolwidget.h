@@ -15,7 +15,7 @@ class ImageControlWidget : public QWidget
 {
 	Q_OBJECT
 
-	Generator* generator_;
+	ImageGenerator* generator_;
 
 	SelectableWidget* selectableWidget_;
 	QScrollArea* scrollArea_;

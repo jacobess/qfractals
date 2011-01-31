@@ -425,5 +425,4 @@ public:
 	void interpret(T& nr, T& ni, T cr, T ci, T zr, T zi, int n, T* xs, T* ys) const;
 };
 
-
 #endif // INTERPRETER_H

@@ -22,7 +22,7 @@ IFS<T>::IFS(const Transformation<T>& t,
 }
 
 template<class T>
-Generator* IFS<T>::createGenerator(int width, int height) const {
+ImageGenerator* IFS<T>::createGenerator(int width, int height) const {
 	return new IFSGenerator<T>(width, height, *this);
 }
 
@@ -47,7 +47,7 @@ void IFSGenerator<T>::exec(int) {
 	T x = 0, y = 0;
 	double r = 0, g = 0, b = 0;
 
-	while(!this->isAborted()) {
+	while(!this->isTerminated()) {
 		double rnd = double(rand()) * spec_.totalProbs_ / RAND_MAX;
 
 		int i = 0;

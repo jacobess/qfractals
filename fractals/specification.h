@@ -9,133 +9,154 @@
 #include <QRunnable>
 #include <QThreadPool>
 #include <QReadWriteLock>
+#include <QTimer>
 
-#include "graphics/image.h"
+// First, the thread-stuff
 
 class Generator;
 
-class Specification {
-	QString description_;
-public:
-	virtual Generator* createGenerator(int width, int height) const = 0;
+// On RefreshThreads:
+/*
+ Using a refreshThread has several advantages:
 
-	const QString& description() const;
-	QString& description();
+ 1. no multiple calls to refresh when using waitConditions
+ 2. easier synchronization
+ 3. no lengthy processes in main thread
+ */
+
+class WorkingThread : public QThread {
+	Generator& parent_;
+
+	WorkingThread(Generator& parent); // can be private since only called by generator
+
+protected:
+	void run();
+
+friend class Generator;
 };
 
-class SubThread;
-
-class Generator : public QObject {
+class Generator : public QThread {
 	Q_OBJECT
 
-	const bool isSelectable_;
-	const int threadCount_;
+	int threadCount_;
 
-	QList<QThread*> threads_;
-
-	// Used to control the state the threads
-	bool restart_;
-	bool abort_;
+	QMutex flagMutex_;
+	bool running_;
+	bool interrupt_;
+	bool terminate_;
 	bool dispose_;
 
-	QMutex abortMutex_;
-	QReadWriteLock rwLock_;
+	int waitingCount_;
+	QMutex waitingCountMutex_;
+
 	QWaitCondition waitCondition_;
+
+	QReadWriteLock workerLock_;
+	QWaitCondition workerCondition_;
+
+	QWaitCondition mainWaitCondition_;
+	QMutex mainMutex_;
+
+	QMutex specChangeMutex_;
 
 	QMutex refreshMutex_;
 
-	QMutex notRunningCountMutex_;
-	int notRunningCount_;
-
-	QMutex executionCountMutex_;
-	int executionCount_;
-
 public:
-	Generator(int threadCount, bool isSelectable);
+	Generator(int threadCount);
 	~Generator();
 
-	virtual const Specification& specification() const = 0;
-
+	// public access to thread stuff
 	virtual int progress() const = 0;
 	virtual int totalSteps() const = 0;
 
-	bool isSelectable() const;
+	bool isRunning() const;
 
+public slots:
+	void terminate();
+	void tryRefresh();
+
+signals:
+	void started();
+	void finished();
+
+protected:
+	// Starts the main thread
+	void run();
+	void interrupt();
+
+	int threadCount() const;
+
+	/** Threads have to check this regularly and must terminate immediately
+	  * if this function returns true */
+	bool isInterrupted() const;
+	bool isTerminated() const;
+
+	void preChangeSpec();
+	void postChangeSpec();
+
+	/** Some initialization code */
+	virtual void init() = 0;
+
+	/** Method called by the index-th thread */
+	virtual void exec(int index) = 0;
+
+	virtual void refreshUnsafe() = 0;
+
+friend class WorkingThread;
+};
+
+// Now for the image stuff:
+class ImageGenerator;
+
+class Specification {
+public:
+	virtual ImageGenerator* createGenerator(int width, int height) const = 0;
+	virtual QString title() const { return "TODO"; }
+};
+
+class ImageGenerator : public Generator {
+	Q_OBJECT
+
+	int width_;
+	int height_;
+	QImage* image_;
+
+	uint* data_;
+
+public:
+	ImageGenerator(int threadCount, int width, int height);
+	virtual ~ImageGenerator();
+
+	virtual const Specification& specification() const = 0;
+
+	// Image part
 	const QImage& image() const;
 
 	int width() const;
 	int height() const;
 
-	void setSize(int width, int height);
+	virtual void setSize(int width, int height);
+	virtual void clear();
 
+signals:
+	void resized(int width, int height);
+
+protected:
+	virtual Specification& spec() = 0;
+	QImage& img();
+
+	virtual void setSizeUnsafe(int width, int height);
+	virtual void refreshUnsafe();
+
+	// Transform into normalized coordinates independent of width and height
 	double normX(double x) const;
 	double normY(double y) const;
 
 	double denormX(double x0) const;
 	double denormY(double y0) const;
 
-	virtual void scale(int cx, int cy, double factor) = 0;
-	virtual void move(int dx, int dy) = 0;
-	virtual void select(double wx, double wy, double hx, double hy, double x0, double y0) = 0;
-
-	virtual QString pointDescription(double x, double y) = 0;
-
-signals:
-	void executionStarted(int);
-	void executionStopped(int);
-
-	void resized(int width, int height);
-
-public slots:
-	void launch();
-
-	void resume();
-	void abort();
-
-	void refresh();
-
-	void dispose();
-
-protected:
-	int threadCount() const;
-
-	void lockForCommit(bool restart = false, bool dispose = false); // this locks runningMutex_
-	void finishCommit(); // this frees runningMutex_
-
-	bool isAborted();
-
-	virtual Image& img() = 0;
-	virtual const Image& img() const = 0;
-
-	virtual Specification& spec() = 0;
-
-	/** Threads have to check this regularly and must terminate immediately
-	  * if this function returns true */
-	bool isAborted() const;
-
-	/** Some initialization code for subclasses */
-	virtual void init() = 0;
-
-	/** Method called by the index-th thread */
-	virtual void exec(int index) = 0;
-
-private:
-	void emitStopped();
-	void emitStarted();
-
-friend class SubThread;
-};
-
-class SubThread : public QThread {
-	Generator& parent_;
-	const int index_;
-
-public:
-	SubThread(Generator& parent, int index);
-protected:
-	void run();
-
-friend class Generator;
+	void rgba(int x, int y, float& r, float& g, float& b, float& a) const;
+	void setRgba(int x, int y, float r, float g, float b, float a);
 };
 
 #endif // SPECIFICATION_H

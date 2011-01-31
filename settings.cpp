@@ -82,7 +82,7 @@ void Settings::initSpecs() {
 				palette,
 				epsPalette);
 
-		spec->description() = "Mandelbrot Set";
+		//spec->description() = "Mandelbrot Set";
 
 		specifications_.push_back(spec);
         }
@@ -127,7 +127,7 @@ void Settings::initSpecs() {
 				palette,
 				epsPalette);
 
-		spec->description() = "Lambda";
+		//spec->description() = "Lambda";
 
 		specifications_.push_back(spec);
 	}
@@ -168,7 +168,7 @@ void Settings::initSpecs() {
 				palette,
 				epsPalette);
 
-		spec->description() = "Tricorn";
+		//spec->description() = "Tricorn";
 
 		specifications_.push_back(spec);
 	}
@@ -208,7 +208,7 @@ void Settings::initSpecs() {
 				palette,
 				epsPalette);
 
-		spec->description() = "Burning Ship";
+		//spec->description() = "Burning Ship";
 
 		specifications_.push_back(spec);
 	}
@@ -265,7 +265,7 @@ void Settings::initSpecs() {
 				palette,
 				epsPalette);
 
-		spec->description() = "Magnet 1";
+		//spec->description() = "Magnet 1";
 
 		specifications_.push_back(spec);
 	}
@@ -305,13 +305,13 @@ void Settings::initSpecs() {
 				0.016 // gravity
 				);
 
-		spec->description() = "Pendulum 3";
+		//spec->description() = "Pendulum 3";
 
 		specifications_.push_back(spec);
 
 		Specification* buddaSpec = new OrbitPlotting<double>(Transformation<double>(10, 0, 0, 10, -5, -5), *spec);
 
-		buddaSpec->description() = "Buddhabrot (Pendulum 3)";
+		//buddaSpec->description() = "Buddhabrot (Pendulum 3)";
 
 		specifications_.push_back(buddaSpec);
 	}
@@ -352,7 +352,7 @@ void Settings::initSpecs() {
 				0.016 // gravity
 				);
 
-		spec->description() = "Pendulum 4";
+		//spec->description() = "Pendulum 4";
 
 		specifications_.push_back(spec);
 	}
@@ -373,7 +373,7 @@ void Settings::initSpecs() {
 
 		Specification* spec = new IFS<double>(Transformation<double>(10.5, 0, 0, -10.5, -5, 10.25), affs, colors);
 
-		spec->description() = "Fern Leaf";
+		//spec->description() = "Fern Leaf";
 
 		specifications_.push_back(spec);
 	}
@@ -392,7 +392,7 @@ void Settings::initSpecs() {
 
 		Specification* spec = new IFS<double>(Transformation<double>(1.25, 0, 0, 1.25, -0.125, -0.125), affs, colors);
 
-		spec->description() = QString("Sierpinski triangle");
+		//spec->description() = QString("Sierpinski triangle");
 
 		specifications_.push_back(spec);
 	}
@@ -416,7 +416,7 @@ void Settings::initSpecs() {
 
 		Specification* spec = new IFS<double>(Transformation<double>(1.25, 0, 0, -1.25, -0.125, 1.125), affs, colors);
 
-		spec->description() = "Tree";
+		//spec->description() = "Tree";
 
 		specifications_.push_back(spec);
 	}
@@ -440,7 +440,7 @@ void Settings::initSpecs() {
 
 		Specification* spec = new IFS<double>(Transformation<double>(7, 0, 0, -7, -3.5, 3.5), affs, colors);
 
-		spec->description() = "Marble Leaf";
+		//spec->description() = "Marble Leaf";
 
 		specifications_.push_back(spec);
 	}
@@ -484,7 +484,7 @@ void Settings::initSpecs() {
 
 		Specification* spec = new OrbitPlotting<double>(Transformation<double>(3, 0, 0, 3, -2, -1.5), *fractal);
 
-		spec->description() = "Buddhabrot (Mandelbrot)";
+		//spec->description() = "Buddhabrot (Mandelbrot)";
 
 		specifications_.push_back(spec);
 	}
@@ -531,7 +531,7 @@ void Settings::initSpecs() {
 
 		Specification* spec = new OrbitPlotting<double>(Transformation<double>(4, 0, 0, 4, -2, -2), *fractal);
 
-		spec->description() = "Buddhabrot (Tricorn)";
+		//spec->description() = "Buddhabrot (Tricorn)";
 
 		specifications_.push_back(spec);
 	}
@@ -576,7 +576,7 @@ void Settings::initSpecs() {
 
 		Specification* spec = new OrbitPlotting<double>(Transformation<double>(4, 0, 0, 4, -2, -2), *fractal);
 
-		spec->description() = "Buddhabrot (Burning Ship)";
+		//spec->description() = "Buddhabrot (Burning Ship)";
 
 		specifications_.push_back(spec);
 	}
@@ -630,7 +630,7 @@ void Settings::initSpecs() {
 
 		Specification* spec = new OrbitPlotting<double>(Transformation<double>(10, 0, 0, 10, -5, -5), *fractal);
 
-		spec->description() = "Buddhabrot (Magnet)";
+		//spec->description() = "Buddhabrot (Magnet)";
 
 		specifications_.push_back(spec);
 	}

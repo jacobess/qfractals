@@ -77,7 +77,7 @@ public:
 		 const T& height,
 		 const T& gravity);
 
-	Generator* createGenerator(int width, int height) const;
+	ImageGenerator* createGenerator(int width, int height) const;
 
 	PendulumEnv<T>* createEnv() const;
 

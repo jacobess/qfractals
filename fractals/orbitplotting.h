@@ -29,8 +29,9 @@ class OrbitPlotting : public Plotting<T> {
 	const OrbitPlottable<T>& spec_;
 public:
 	OrbitPlotting(const Transformation<T> &t, const OrbitPlottable<T>& spec);
+
 	OrbitPlottingEnv<T>* createEnv() const;
-	Generator* createGenerator(int width, int height) const;
+	ImageGenerator* createGenerator(int width, int height) const;
 };
 
 
