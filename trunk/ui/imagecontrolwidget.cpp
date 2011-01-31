@@ -15,27 +15,27 @@ ImageControlWidget::ImageControlWidget(QWidget* parent, const Specification& spe
 		runningIndex_(0)
 {
 	init();
-	generator_->launch();
+	// TODO Priority
+	generator_->start();
 }
 
 ImageControlWidget::~ImageControlWidget() {
 	refreshTimer_.stop();
 	updateTimer_.stop();
-	generator_->dispose();
+
 	delete generator_;
 }
 
 const Specification& ImageControlWidget::specification() const {
-	// TODO What's the problem here?
-
 	const Specification& spec =  generator_->specification();
-
 	return spec;
 }
 
 
 void ImageControlWidget::init() {
-	selectableWidget_ = new SelectableWidget(this, generator_);
+	ViewportProxy* vp = dynamic_cast<ViewportProxy*>(generator_);
+
+	selectableWidget_ = new SelectableWidget(this, vp);
 
 	scrollArea_ = new QScrollArea(this);
 	scrollArea_->setAlignment(Qt::AlignCenter);
@@ -302,7 +302,7 @@ void ImageControlWidget::refreshBackground() {
 	//QThread* refresher = new RefreshBackground(*generator_);
 	//refresher->start(QThread::LowPriority);
 	//delete refresher;
-	generator_->refresh();
+	generator_->tryRefresh();
 }
 
 void ImageControlWidget::setStatus(QString message) {
@@ -370,5 +370,5 @@ RefreshBackground::RefreshBackground(Generator &generator) :
 		generator_(generator) {}
 
 void RefreshBackground::run() {
-	generator_.refresh();
+	generator_.tryRefresh();
 }

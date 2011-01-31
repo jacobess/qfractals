@@ -6,36 +6,36 @@
 #define BROWSE_MODE 0
 #define SELECT_MODE 1
 
-SelectableWidget::SelectableWidget(QWidget *parent, Generator *generator) :
+SelectableWidget::SelectableWidget(QWidget *parent, ViewportProxy *vp) :
 		QWidget(parent),
-		generator_(generator),
+		vp_(vp),
 		hasSelection_(UNSELECTED) {
 	setFocusPolicy(Qt::ClickFocus);
 	setMouseTracking(true);
 
-	this->resize(generator_->width(), generator_->height());
+	this->resize(vp_->width(), vp_->height());
 
 	repaint();
 }
 
 QPointF SelectableWidget::toImg(QPointF p) const {
-	qreal x = p.x() * generator_->width() / qreal(width());
-	qreal y = p.y() * generator_->height() / qreal(height());
+	qreal x = p.x() * vp_->width() / qreal(width());
+	qreal y = p.y() * vp_->height() / qreal(height());
 
 	return QPointF(x, y);
 }
 
 QPointF SelectableWidget::fromImg(QPointF p) const {
-	qreal x = p.x() * width() / qreal(generator_->width());
-	qreal y = p.y() * height() / qreal(generator_->height());
+	qreal x = p.x() * width() / qreal(vp_->width());
+	qreal y = p.y() * height() / qreal(vp_->height());
 
 	return QPointF(x, y);
 }
 
 
 void SelectableWidget::paintEvent(QPaintEvent* /* event */) {
-	if(generator_) {
-		const QImage& img = generator_->image();
+	if(vp_) {
+		const QImage& img = vp_->image();
 
 		QPainter painter(this);
 
@@ -62,7 +62,7 @@ void SelectableWidget::paintEvent(QPaintEvent* /* event */) {
 					polygon << fromImg(selectionPolygon_[i]).toPoint();
 				}
 
-				painter.drawImage(rect(), generator_->image());
+				painter.drawImage(rect(), vp_->image());
 
 				painter.setPen(Settings::settings()->selectionPen1());
 				painter.drawPolygon(polygon);
@@ -109,7 +109,7 @@ void SelectableWidget::wheelEvent(QWheelEvent *event) {
 
 		QPointF p = toImg(event->pos());
 
-		generator_->scale(p.x(), p.y(), zoomFactor);
+		vp_->scale(p.x(), p.y(), zoomFactor);
 
 		//repaint();
 
@@ -138,11 +138,11 @@ void SelectableWidget::mousePressEvent(QMouseEvent *event) {
 
 				selectionPolygon_.clear();
 
-				qreal max = generator_->width() > generator_->height() ?
-					    generator_->width() : generator_->height();
+				qreal max = vp_->width() > vp_->height() ?
+					    vp_->width() : vp_->height();
 
-				qreal w = qreal(generator_->width()) / max;
-				qreal h = qreal(generator_->height()) / max;
+				qreal w = qreal(vp_->width()) / max;
+				qreal h = qreal(vp_->height()) / max;
 
 				selectionPolygon_ << p0_
 						<< QPointF(p0_.x() + w, p0_.y())
@@ -206,7 +206,9 @@ void SelectableWidget::mouseMoveEvent(QMouseEvent *event) {
 
 
 	QPointF p = toImg(event->posF());
-	emit status(generator_->pointDescription(p.x(), p.y()));
+
+	// TODO
+	// emit status(vp_->pointDescription(p.x(), p.y()));
 }
 
 int SelectableWidget::findSelectablePoint(QPoint pos) const {
@@ -347,7 +349,7 @@ void SelectableWidget::mouseReleaseEvent(QMouseEvent *event) {
 				qreal dx = p1_.x() - p0_.x();
 				qreal dy = p1_.y() - p0_.y();
 
-				generator_->move(dx, dy);
+				vp_->move(dx, dy);
 			}
 		} else if(hasSelection_ == SELECT_MODE) {
 			selectedPointIndex_ = -1;
@@ -363,13 +365,13 @@ void SelectableWidget::mouseDoubleClickEvent(QMouseEvent* event) {
 	    event->button() == Qt::LeftButton &&
 	    selectionPolygon_.containsPoint(toImg(event->posF()), Qt::OddEvenFill)) {
 
-		qreal wx = (selectionPolygon_[1].x() - selectionPolygon_[0].x()) / generator_->width();
-		qreal wy = (selectionPolygon_[1].y() - selectionPolygon_[0].y()) / generator_->width();
+		qreal wx = (selectionPolygon_[1].x() - selectionPolygon_[0].x()) / vp_->width();
+		qreal wy = (selectionPolygon_[1].y() - selectionPolygon_[0].y()) / vp_->width();
 
-		qreal hx = (selectionPolygon_[3].x() - selectionPolygon_[0].x()) / generator_->height();
-		qreal hy = (selectionPolygon_[3].y() - selectionPolygon_[0].y()) / generator_->height();
+		qreal hx = (selectionPolygon_[3].x() - selectionPolygon_[0].x()) / vp_->height();
+		qreal hy = (selectionPolygon_[3].y() - selectionPolygon_[0].y()) / vp_->height();
 
-		generator_->select(wx, wy, hx, hy, selectionPolygon_[0].x(), selectionPolygon_[0].y());
+		vp_->select(wx, wy, hx, hy, selectionPolygon_[0].x(), selectionPolygon_[0].y());
 	}
 
 	hasSelection_ = UNSELECTED;
@@ -411,7 +413,7 @@ void SelectableWidget::keyPressEvent(QKeyEvent *event) {
 				dy *= Settings::settings()->moveDistance();
 			}
 
-			generator_->move(dx, dy);
+			vp_->move(dx, dy);
 			repaint();
 			break;
 		case Qt::Key_Plus:
@@ -421,8 +423,8 @@ void SelectableWidget::keyPressEvent(QKeyEvent *event) {
 				zoomFactor = Settings::settings()->altZoomFactor();
 			}
 
-			generator_->scale(generator_->width() / 2,
-					  generator_->height() / 2,
+			vp_->scale(vp_->width() / 2,
+					  vp_->height() / 2,
 					  zoomFactor);
 
 			repaint();
@@ -435,8 +437,8 @@ void SelectableWidget::keyPressEvent(QKeyEvent *event) {
 				zoomFactor = 1. / Settings::settings()->altZoomFactor();
 			}
 
-			generator_->scale(generator_->width() / 2,
-					  generator_->height() / 2,
+			vp_->scale(vp_->width() / 2,
+					  vp_->height() / 2,
 					  zoomFactor);
 
 			repaint();

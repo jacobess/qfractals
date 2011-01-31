@@ -63,7 +63,7 @@ height_(height),
 gravity_(gravity) {}
 
 template<class T>
-Generator* Pendulum<T>::createGenerator(int width, int height) const {
+ImageGenerator* Pendulum<T>::createGenerator(int width, int height) const {
 	return new PendulumGenerator<T>(width, height, *this);
 }
 

@@ -6,7 +6,7 @@ OrbitPlotting<T>::OrbitPlotting(const Transformation<T> &t, const OrbitPlottable
 		spec_(spec) {}
 
 template<class T>
-Generator* OrbitPlotting<T>::createGenerator(int width, int height) const {
+ImageGenerator* OrbitPlotting<T>::createGenerator(int width, int height) const {
 	return new OrbitPlottingGenerator<T>(width, height, *this);
 }
 
@@ -34,7 +34,7 @@ template<class T>
 void OrbitPlottingGenerator<T>::exec(int) {
 	OrbitPlottingEnv<T>* env = spec_.createEnv();
 
-	while(!this->isAborted()) {
+	while(!this->isTerminated()) {
 		double min = -4;
 		double max = 4;
 

@@ -25,7 +25,7 @@ public:
 	    const QList< Transformation<T> >& affs,
 	    const QList<QColor>& colors);
 
-	Generator* createGenerator(int width, int height) const;
+	ImageGenerator* createGenerator(int width, int height) const;
 
 friend class IFSGenerator<T>;
 };
