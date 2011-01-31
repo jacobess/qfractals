@@ -492,5 +492,23 @@ TreeNode* Interpreter<T>::index() {
 
 }*/
 
-template class Interpreter<qreal>;
+void Parser::skipWhite(QString expr, int &pos) {
+	while(expr[pos].isSpace()) pos++;
+}
+
+Node* Parser::sum(QString expr, int& pos) {
+	if(expr[pos] == '-') {
+
+	}
+}
+
+Node* Parser::product(QString expr, int& pos) {}
+Node* Parser::app(QString expr, int& pos) {}
+Node* Parser::power(QString expr, int& pos) {}
+Node* Parser::term(QString expr, int& pos) {}
+Node* Parser::var(QString expr, int& pos) {}
+Node* Parser::num(QString expr, int& pos) {}
+
+
+template class Interpreter<double>;
 template class Interpreter<long double>;

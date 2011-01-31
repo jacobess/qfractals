@@ -21,6 +21,10 @@ OrbitPlottingGenerator<T>::OrbitPlottingGenerator(int width, int height, const O
 		spec_(spec) {}
 
 template<class T>
+OrbitPlottingGenerator<T>::~OrbitPlottingGenerator() {}
+
+
+template<class T>
 const OrbitPlotting<T>& OrbitPlottingGenerator<T>::specification() const {
 	return spec_;
 }

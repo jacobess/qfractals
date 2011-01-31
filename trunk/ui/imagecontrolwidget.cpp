@@ -12,7 +12,7 @@ ImageControlWidget::ImageControlWidget(QWidget* parent, const Specification& spe
 				spec.createGenerator(
 						Settings::settings()->defaultWidth(),
 						Settings::settings()->defaultHeight())),
-		runningIndex_(0)
+		turnCount_(0)
 {
 	init();
 	// TODO Priority
@@ -22,6 +22,8 @@ ImageControlWidget::ImageControlWidget(QWidget* parent, const Specification& spe
 ImageControlWidget::~ImageControlWidget() {
 	refreshTimer_.stop();
 	updateTimer_.stop();
+
+	generator_->dispose();
 
 	delete generator_;
 }
@@ -108,14 +110,14 @@ void ImageControlWidget::init() {
 
 	// Connect the generator
 	// First receive done-signal
-	connect(generator_, SIGNAL(executionStopped(int)), this, SLOT(setExecutionStopped(int)));
-	connect(generator_, SIGNAL(executionStarted(int)), this, SLOT(setExecutionStarted(int)));
+	connect(generator_, SIGNAL(started(int)), this, SLOT(setExecutionStarted(int)));
+	connect(generator_, SIGNAL(finished(int)), this, SLOT(setExecutionStopped(int)));
 
 	connect(&updateTimer_, SIGNAL(timeout()), selectableWidget_, SLOT(repaint()));
 	connect(&updateTimer_, SIGNAL(timeout()), this, SLOT(updateProgress()));
 	connect(&refreshTimer_, SIGNAL(timeout()), this, SLOT(refreshBackground()));
 
-	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(abort()));
+	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(terminate()));
 }
 
 void ImageControlWidget::changeScale(int i) {
@@ -231,46 +233,46 @@ void ImageControlWidget::updateSize() {
 void ImageControlWidget::setExecutionStarted(int index) {
 	QMutexLocker locker(&mutex_);
 
-	runningIndex_ = index;
+	if(turnCount_ < index) {
+		qDebug("Execution started %d", index);
 
-	cancelButton_->setText("Cancel");
-	disconnect(cancelButton_, 0, generator_, 0);
-	connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(abort()));
+		turnCount_ = index;
 
-	if(this->isVisible()) {
-		updateTimer_.start(Settings::settings()->updateInterval());
-		refreshTimer_.start(Settings::settings()->refreshInterval());
+		cancelButton_->setEnabled(true);
+
+		if(this->isVisible()) {
+			updateTimer_.start(Settings::settings()->updateInterval());
+			refreshTimer_.start(Settings::settings()->refreshInterval());
+		}
+
+		progressBar_->setEnabled(true);
 	}
-
-	progressBar_->setEnabled(true);
 }
 
 void ImageControlWidget::setExecutionStopped(int index) {
-	QMutexLocker locker (&mutex_);
+	QMutexLocker locker(&mutex_);
 
-	if(index == runningIndex_) {
+	if(index >= turnCount_) {
+		qDebug("Execution stopped %d", index);
+		index = turnCount_;
+
 		updateTimer_.stop();
 		refreshTimer_.stop();
 
-		cancelButton_->setText("Resume");
+		cancelButton_->setEnabled(false);
 
 		progressBar_->setMaximum(1);
 		progressBar_->setValue(1);
 		progressBar_->setEnabled(false);
 
-		disconnect(cancelButton_, 0, generator_, 0);
-		connect(cancelButton_, SIGNAL(clicked()), generator_, SLOT(resume()));
-
 		repaint();
-
-		runningIndex_ = -1;
 	} // otherwise ignore since a later start-message arrived
 }
 
 void ImageControlWidget::showEvent(QShowEvent *) {
 	QMutexLocker locker(&mutex_);
 
-	if(runningIndex_ >= 0) {
+	if(turnCount_ >= 0 && generator_->isRunning()) {
 		updateTimer_.start(Settings::settings()->updateInterval());
 		refreshTimer_.start(Settings::settings()->refreshInterval());
 	}
@@ -279,7 +281,7 @@ void ImageControlWidget::showEvent(QShowEvent *) {
 void ImageControlWidget::hideEvent(QHideEvent *) {
 	QMutexLocker locker(&mutex_);
 
-	if(runningIndex_ >= 0) {
+	if(turnCount_ >= 0) {
 		updateTimer_.stop();
 		refreshTimer_.stop();
 	}
@@ -327,7 +329,7 @@ void ImageControlWidget::showResizeDialog() {
 
 void ImageControlWidget::saveImage() {
 	bool save = true;
-	if(runningIndex_ >= 0) {
+	if(turnCount_ >= 0) {
 		QMessageBox msgBox;
 		msgBox.setText("Calculation is still running.");
 		msgBox.setInformativeText("Do you want to save anyway?");

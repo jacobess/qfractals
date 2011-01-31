@@ -425,4 +425,24 @@ public:
 	void interpret(T& nr, T& ni, T cr, T ci, T zr, T zi, int n, T* xs, T* ys) const;
 };
 
+// New...
+
+class Node {
+public:
+	// Stream
+};
+
+class Parser {
+public:
+private:
+	static void skipWhite(QString expr, int& pos);
+	static Node* sum(QString expr, int& pos);
+	static Node* product(QString expr, int& pos);
+	static Node* app(QString expr, int& pos);
+	static Node* power(QString expr, int& pos);
+	static Node* term(QString expr, int& pos);
+	static Node* var(QString expr, int& pos);
+	static Node* num(QString expr, int& pos);
+};
+
 #endif // INTERPRETER_H

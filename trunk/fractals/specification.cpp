@@ -10,33 +10,53 @@
 WorkingThread::WorkingThread(Generator &parent) :
 		parent_(parent) {}
 
+WorkingThread::~WorkingThread() {}
+
+
 void WorkingThread::run() {
 	parent_.workerLock_.lockForRead();
 
+	parent_.waitingCountMutex_.lock();
+	int index = parent_.waitingCount_ ++;
+	parent_.waitingCountMutex_.unlock();
+
 	while(!parent_.dispose_) {
-		parent_.waitingCountMutex_.lock();
-		parent_.waitingCount_ ++;
-		parent_.waitingCountMutex_.unlock();
+
+		qDebug("Thread %d waiting", index);
 
 		// Wait until woken up by main thread
-		parent_.waitCondition_.wait(&parent_.workerLock_);
+		parent_.workerCondition_.wait(&parent_.workerLock_);
 
-		parent_.waitingCountMutex_.lock();
-		int index = parent_.waitingCount_ --;
-		parent_.waitingCountMutex_.unlock();
+		qDebug("Thread %d woke up", index);
 
-		if(!parent_.isTerminated()) {
-			parent_.exec(index);
-		}
+		parent_.runningCountMutex_.lock();
+		parent_.runningCount_ ++;
+		parent_.runningCountMutex_.unlock();
+
+		qDebug("Thread %d started", index);
+
+		parent_.exec(index);
+
+		// Wait until all threads have started
+
+		qDebug("Thread %d finished", index);
 	}
 
 	parent_.workerLock_.unlock();
 }
 
 Generator::Generator(int threadCount) :
-		threadCount_(threadCount <= 0 ? QThread::idealThreadCount() : threadCount) {}
+		threadCount_(threadCount <= 0 ? QThread::idealThreadCount() : threadCount),
+		running_(false),
+		terminate_(false),
+		interrupt_(false),
+		dispose_(false),
+		waitingCount_(0),
+		runningCount_(0) {}
 
-Generator::~Generator() {}
+Generator::~Generator() {
+	qDebug("Destructor");
+}
 
 bool Generator::isRunning() const {
 	return running_;
@@ -62,9 +82,19 @@ void Generator::interrupt() {
 	flagMutex_.unlock();
 }
 
-void Generator::run() {
-	mainMutex_.lock();
+void Generator::dispose() {
+	dispose_ = true;
 
+	// wait until main thread is in waiting position
+	allowChangesMutex_.lock();
+	allowChangesMutex_.unlock();
+
+	allowChangesWaitCondition_.wakeAll();
+
+	this->wait();
+}
+
+void Generator::run() {
 	// Create and start working threads
 
 	WorkingThread** threads = new WorkingThread*[threadCount_];
@@ -83,15 +113,29 @@ void Generator::run() {
 
 	while(waitingCount_ < threadCount_) {
 		waitingCountMutex_.unlock();
-		QThread::sleep(10);
+		QThread::msleep(10);
 		waitingCountMutex_.lock();
 	}
 
+	waitingCountMutex_.unlock();
+
+	qDebug("Trying to obtain writeLock");
+
+	workerLock_.lockForWrite();
+
+	qDebug("Obtained writeLock");
+
+	allowChangesMutex_.lock();
+
+	int turnCount = 0;
+
 	// Main loop
 	while(!dispose_) {
+		qDebug("Starting...");
 		// Running part start
 		flagMutex_.lock();
 		running_ = true;
+		emit started(++turnCount);
 		flagMutex_.unlock();
 
 		// Initialize image
@@ -105,62 +149,99 @@ void Generator::run() {
 		qDebug("Init finished after %d ms", time.elapsed());
 
 		// Start threads
-		waitCondition_.wakeAll();
+		workerLock_.unlock();
+
+		workerCondition_.wakeAll();
 
 		// Wait until all threads have started
-		waitingCountMutex_.lock();
+		runningCountMutex_.lock();
 
-		while(waitingCount_ > 0) {
-			waitingCountMutex_.unlock();
-			QThread::sleep(10);
-			waitingCountMutex_.lock();
+		while(runningCount_ < threadCount_) {
+			runningCountMutex_.unlock();
+			QThread::msleep(10);
+			runningCountMutex_.lock();
 		}
 
-		qDebug("Threads are running after %d ms", time.elapsed());
+		runningCount_ = 0;
 
-		waitingCountMutex_.unlock();
+		runningCountMutex_.unlock();
+
+		qDebug("Threads are running after %d ms", time.elapsed());
 
 		// Now wait for all to finish
 		workerLock_.lockForWrite();
 
 		qDebug("Threads finished after %d ms", time.elapsed());
 
-		flagMutex_.lock();
-		running_ = false;
-		flagMutex_.unlock();
+		refreshMutex_.lock();
 
 		if(!isInterrupted()) {
-			refreshMutex_.lock();
 			refreshUnsafe();
-			refreshMutex_.unlock();
 		}
 
 		qDebug("Finished after %d ms", time.elapsed());
 
+		if(terminate_) qDebug("Terminated");
+		if(interrupt_) qDebug("Interrupted");
+		if(dispose_) qDebug("Disposed");
+
 		flagMutex_.lock();
+
 		running_ = false;
 		terminate_ = false;
 		interrupt_ = false;
+
+		emit finished(turnCount);
+
 		flagMutex_.unlock();
+
+		refreshMutex_.unlock();
 
 		// Running part end
 		// Wait for wake up
-		mainWaitCondition_.wait(&mainMutex_);
+
+		qDebug("In waiting position - now something may change");
+
+		allowChangesWaitCondition_.wait(&allowChangesMutex_);
 	}
 
-	// TODO Delete threads
+	allowChangesMutex_.unlock();
+	workerLock_.unlock();
+	workerCondition_.wakeAll();
+
+	qDebug("Deleting threads");
+
+	for(int i = 0; i < threadCount_; i++) {
+		threads[i]->wait();
+		delete threads[i];
+	}
 }
 
 void Generator::preChangeSpec() {
 	// Interrupt running calculations
 	specChangeMutex_.lock();
+	qDebug("Spec changing - interrupting");
 	interrupt();
-	mainMutex_.lock();
+	allowChangesMutex_.lock();
+	qDebug("Got lock");
 }
 
 void Generator::postChangeSpec() {
-	mainMutex_.unlock();
-	mainWaitCondition_.wakeOne();
+	allowChangesMutex_.unlock();
+	allowChangesWaitCondition_.wakeOne();
+	qDebug("Spec changing done");
+
+	// Make sure thread is running
+	flagMutex_.lock();
+
+	while(!running_) {
+		flagMutex_.unlock();
+		QThread::msleep(10);
+		flagMutex_.lock();
+	}
+
+	flagMutex_.unlock();
+
 	specChangeMutex_.unlock();
 }
 
@@ -202,6 +283,14 @@ const QImage& ImageGenerator::image() const {
 
 QImage& ImageGenerator::img() {
 	return *image_;
+}
+
+const QImage* ImageGenerator::imgClone() const {
+	QImage* newImage = new QImage(width_, height_, QImage::Format_ARGB32);
+	uint* newData = (uint*) newImage->bits();
+	std::copy(data_, data_ + width_ * height_, newData);
+
+	return newImage;
 }
 
 
