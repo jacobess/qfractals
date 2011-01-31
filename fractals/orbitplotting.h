@@ -41,6 +41,7 @@ class OrbitPlottingGenerator : public PlottingGenerator<T> {
 
 public:
 	OrbitPlottingGenerator(int width, int height, const OrbitPlotting<T>& spec);
+	virtual ~OrbitPlottingGenerator();
 	const OrbitPlotting<T>& specification() const;
 
 protected:

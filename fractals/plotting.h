@@ -26,6 +26,7 @@ class PlottingGenerator : public ViewportGenerator<T> {
 
 public:
 	PlottingGenerator(int width, int height);
+	virtual ~PlottingGenerator();
 	virtual const Plotting<T>& specification() const = 0;
 
 	int progress() const;

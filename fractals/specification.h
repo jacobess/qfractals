@@ -28,7 +28,7 @@ class WorkingThread : public QThread {
 	Generator& parent_;
 
 	WorkingThread(Generator& parent); // can be private since only called by generator
-
+	~WorkingThread();
 protected:
 	void run();
 
@@ -42,20 +42,21 @@ class Generator : public QThread {
 
 	QMutex flagMutex_;
 	bool running_;
-	bool interrupt_;
 	bool terminate_;
+	bool interrupt_;
 	bool dispose_;
 
 	int waitingCount_;
 	QMutex waitingCountMutex_;
 
-	QWaitCondition waitCondition_;
+	int runningCount_;
+	QMutex runningCountMutex_;
 
 	QReadWriteLock workerLock_;
 	QWaitCondition workerCondition_;
 
-	QWaitCondition mainWaitCondition_;
-	QMutex mainMutex_;
+	QWaitCondition allowChangesWaitCondition_;
+	QMutex allowChangesMutex_;
 
 	QMutex specChangeMutex_;
 
@@ -63,7 +64,7 @@ class Generator : public QThread {
 
 public:
 	Generator(int threadCount);
-	~Generator();
+	virtual ~Generator();
 
 	// public access to thread stuff
 	virtual int progress() const = 0;
@@ -73,16 +74,18 @@ public:
 
 public slots:
 	void terminate();
+	void interrupt();
+	void dispose();
+
 	void tryRefresh();
 
 signals:
-	void started();
-	void finished();
+	void started(int turnCount);
+	void finished(int turnCount);
 
 protected:
 	// Starts the main thread
 	void run();
-	void interrupt();
 
 	int threadCount() const;
 
@@ -144,6 +147,8 @@ signals:
 protected:
 	virtual Specification& spec() = 0;
 	QImage& img();
+
+	const QImage* imgClone() const;
 
 	virtual void setSizeUnsafe(int width, int height);
 	virtual void refreshUnsafe();

@@ -13,7 +13,9 @@ RenderingGenerator<T>::RenderingGenerator(int width, int height, int aaLevel) :
 		ViewportGenerator<T>(-1, width, height),
 		aaLevel_(aaLevel),
 		types_(new uchar[width * height * aaLevel * aaLevel]),
-		values_(new double[width * height * aaLevel * aaLevel]) {}
+		values_(new double[width * height * aaLevel * aaLevel]) {
+	clearData();
+}
 
 template<class T>
 RenderingGenerator<T>::~RenderingGenerator() {
@@ -131,8 +133,8 @@ void RenderingGenerator<T>::clearData() {
 template<class T>
 void RenderingGenerator<T>::refreshUnsafe() {
 	// TODO This is very slow and takes more than 1 second
-	for(int y = 0; y < this->height(); y++) {
-		for(int x = 0; x < this->width(); x++) {
+	for(int y = 0; y < this->height() && !this->isInterrupted(); y++) {
+		for(int x = 0; x < this->width() && !this->isInterrupted(); x++) {
 			updatePix(x, y);
 		}
 	}

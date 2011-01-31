@@ -19,7 +19,7 @@ void MainWindow::init() {
 	newMenu = fileMenu->addMenu(tr("&New"));
 
 	foreach(Specification* spec , Settings::settings()->specifications()) {
-		// TODO newMenu->addAction(spec->description());
+		newMenu->addAction(spec->title());
 	}
 
 	connect(newMenu, SIGNAL(triggered(QAction*)), SLOT(addNew(QAction*)));
@@ -77,9 +77,9 @@ void MainWindow::selectMode(bool enable) {
 
 void MainWindow::addNew(QAction* action) {
 	foreach(Specification* spec , Settings::settings()->specifications()) {
-		/* TODO if(spec->description() == action->text()) {
+		if(spec->title() == action->text()) {
 			addTab(*spec);
-		}*/
+		}
 	}
 }
 
@@ -116,6 +116,6 @@ void MainWindow::closeTab(int index) {
 
 void MainWindow::addTab(const Specification& spec) {
 	ImageControlWidget* imgWidget = new ImageControlWidget(this, spec);
-	// TODO tabWidget->addTab(imgWidget, spec.description());
+	tabWidget->addTab(imgWidget, spec.title());
 	tabWidget->setCurrentWidget(imgWidget);
 }

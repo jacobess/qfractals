@@ -22,6 +22,9 @@ PlottingGenerator<T>::PlottingGenerator(int width, int height) :
 		std::fill(density_.data(), density_.data() + width * height, 0);
 }
 
+template<class T>
+PlottingGenerator<T>::~PlottingGenerator() {}
+
 template<class  T>
 int PlottingGenerator<T>::progress() const {
 	return 0;
@@ -97,8 +100,8 @@ void PlottingGenerator<T>::selectUnsafe(double wx, double wy, double hx, double 
 
 template<class T>
 void PlottingGenerator<T>::refreshUnsafe() {
-	for(int y = 0; y < this->height(); y++) {
-		for(int x = 0; x < this->width(); x++) {
+	for(int y = 0; y < this->height() && !this->isInterrupted(); y++) {
+		for(int x = 0; x < this->width() && !this->isInterrupted(); x++) {
 			updatePix(x, y);
 		}
 	}

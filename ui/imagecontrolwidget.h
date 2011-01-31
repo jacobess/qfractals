@@ -35,7 +35,7 @@ class ImageControlWidget : public QWidget
 	QTimer updateTimer_;
 	QTimer refreshTimer_;
 
-	int runningIndex_;
+	int turnCount_;
 	QMutex mutex_;
 
 public:

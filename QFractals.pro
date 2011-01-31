@@ -20,8 +20,7 @@ SOURCES += main.cpp \
     fractals/plotting.cpp \
     fractals/ifs.cpp \
     math/interpreter.cpp \
-    fractals/orbitplotting.cpp \
-    math/stackmachine.cpp
+    fractals/orbitplotting.cpp
 HEADERS += graphics/colorpalette.h \
     math/transformation.h \
     math/spline.h \
@@ -38,8 +37,7 @@ HEADERS += graphics/colorpalette.h \
     ui/resizedialog.h \
     fractals/pendulum.h \
     math/interpreter.h \
-    fractals/orbitplotting.h \
-    math/stackmachine.h
+    fractals/orbitplotting.h
 FORMS +=
 CONFIG += debug
 #LIBS += -L/opt/local/lib/ \

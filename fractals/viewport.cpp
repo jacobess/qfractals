@@ -26,7 +26,7 @@ void ViewportProxy::select(double wx, double wy, double hx, double hy, double x0
 }
 
 void ViewportProxy::scaleUnsafe(int cx, int cy, double factor) {
-	QImage newImage(image());
+	const QImage* tempImage = this->imgClone();
 
 	QPainter painter(&img());
 
@@ -37,11 +37,12 @@ void ViewportProxy::scaleUnsafe(int cx, int cy, double factor) {
 	painter.scale(1 / factor, 1 / factor);
 	painter.translate(-cx, -cy);
 
-	painter.drawImage(0, 0, newImage);
+	painter.drawImage(0, 0, *tempImage);
+	delete tempImage;
 }
 
 void ViewportProxy::moveUnsafe(int dx, int dy) {
-	QImage newImage(image());
+	const QImage* tempImage = this->imgClone();
 
 	QPainter painter(&img());
 
@@ -50,13 +51,14 @@ void ViewportProxy::moveUnsafe(int dx, int dy) {
 
 	painter.translate(dx, dy);
 
-	painter.drawImage(0, 0, newImage);
+	painter.drawImage(0, 0, *tempImage);
+	delete tempImage;
 }
 
 void ViewportProxy::selectUnsafe(double wx, double wy, double hx, double hy, double x0, double y0) {
 	QTransform t(wx, wy, hx, hy, x0, y0);
 
-	QImage newImage(image());
+	const QImage* tempImage = this->imgClone();
 
 	QPainter painter(&img());
 
@@ -64,7 +66,9 @@ void ViewportProxy::selectUnsafe(double wx, double wy, double hx, double hy, dou
 	painter.setRenderHint(QPainter::SmoothPixmapTransform);
 
 	painter.setTransform(t.inverted());
-	painter.drawImage(0, 0, newImage);
+
+	painter.drawImage(0, 0, *tempImage);
+	delete tempImage;
 }
 
 template<class T>
