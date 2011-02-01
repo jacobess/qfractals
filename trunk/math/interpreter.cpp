@@ -306,9 +306,9 @@ bool Interpreter<T>::nextString() {
 }
 
 template<class T>
-TreeNode* Interpreter<T>::sum() {
+TreeNode<T>* Interpreter<T>::sum() {
 	//sum := product ( [ + - ] product )*
-	TreeNode* l = product();
+	TreeNode<T>* l = product();
 
 	skipWhite();
 
@@ -318,7 +318,7 @@ TreeNode* Interpreter<T>::sum() {
 
 		offset_ ++;
 
-		TreeNode* r = product();
+		TreeNode<T>* r = product();
 
 		l = new SumNode(l, r, op == '+');
 
@@ -330,9 +330,9 @@ TreeNode* Interpreter<T>::sum() {
 }
 
 template<class T>
-TreeNode* Interpreter<T>::product() {
+TreeNode<T>* Interpreter<T>::product() {
 	//sum := product ( [ + - ] product )*
-	TreeNode* l = exp();
+	TreeNode<T>* l = exp();
 
 	skipWhite();
 
@@ -347,7 +347,7 @@ TreeNode* Interpreter<T>::product() {
 			op = '/';
 		}
 
-		TreeNode* r = product();
+		TreeNode<T>* r = product();
 
 		l = new ProductNode(l, r, op == '*');
 
@@ -359,17 +359,17 @@ TreeNode* Interpreter<T>::product() {
 }
 
 template<class T>
-TreeNode* Interpreter<T>::exp() {
+TreeNode<T>* Interpreter<T>::exp() {
 	// exp := app ( ^ app )*
 
-	TreeNode* l = app();
+	TreeNode<T>* l = app();
 
 	skipWhite();
 
 	while(nextChar('^')) {
 		offset_ ++;
 
-		TreeNode* r = app();
+		TreeNode<T>* r = app();
 
 		l = new PowNode(l, r);
 	}
@@ -380,7 +380,7 @@ TreeNode* Interpreter<T>::exp() {
 }
 
 template<class T>
-TreeNode* Interpreter<T>::app() {
+TreeNode<T>* Interpreter<T>::app() {
 	//   app := FN app // Possible clash with product rule; includes expressions like z(0) or z(n-1)
 	//	| term
 
@@ -422,12 +422,12 @@ TreeNode* Interpreter<T>::app() {
 }
 
 template<class T>
-TreeNode* Interpreter<T>::term() {
+TreeNode<T>* Interpreter<T>::term() {
 
 	if(nextChar('(')) {
 		offset_ ++;
 
-		TreeNode* n = sum;
+		TreeNode<T>* n = sum;
 
 		skipWhite();
 
@@ -457,7 +457,7 @@ TreeNode* Interpreter<T>::term() {
 		if(nextChar('[')) {
 			offset_ ++;
 
-			TreeNode* idx = index();
+			TreeNode<T>* idx = index();
 		}
 	} else {
 		T re = num();
@@ -488,27 +488,218 @@ T Interpreter<T>::num() {
 }
 
 template<class T>
-TreeNode* Interpreter<T>::index() {
+TreeNode<T>* Interpreter<T>::index() {
 
 }*/
 
-void Parser::skipWhite(QString expr, int &pos) {
-	while(expr[pos].isSpace()) pos++;
+template<class T>
+Tree<T>::Tree(Node<T>* n) : root_(n) {}
+
+
+template<class T>
+Tree<T>* Tree<T>::parse(const QString& expr) {
+	int pos = 0;
+	Node<T>* root = sum(expr, pos);
+
+	if(pos < expr.length()) {
+		qDebug("WARNING: Parsing did not reach end of string");
+	}
+
+	qDebug() << QString(root->toString());
+
+	return new Tree<T>(root);
 }
 
-Node* Parser::sum(QString expr, int& pos) {
-	if(expr[pos] == '-') {
 
+template<class T>
+bool Tree<T>::skipWhite(const QString& expr, int &pos) {
+	while(pos < expr.length() && expr[pos].isSpace()) pos++;
+	return pos < expr.length();
+}
+
+template<class T>
+Node<T>* Tree<T>::sum(const QString& expr, int& pos) {
+	if(!skipWhite(expr, pos)) return 0;
+
+	bool neg = false;
+
+	if(expr[pos] == '-') {
+		neg = true;
+		pos++;
+	}
+
+	Node<T>* l = product(expr, pos);
+
+	if(l != 0 && neg) {
+		l = new NegNode<T>(l);
+	}
+
+	if(!skipWhite(expr, pos)) return l;
+
+	while(expr[pos] == '-' || expr[pos] == '+') {
+		neg = expr[pos] == '-';
+		pos ++;
+
+		Node<T>* r = product(expr, pos);
+
+		if(r == 0) {
+			qDebug("WARNING: +- found but no argument");
+			return l;
+		}
+
+		if(!neg) {
+			l = new AddNode<T>(l, r);
+		} else {
+			l = new SubNode<T>(l, r);
+		}
+
+		if(!skipWhite(expr, pos)) return l;
+	}
+
+	return l;
+}
+
+template<class T>
+Node<T>* Tree<T>::product(const QString& expr, int& pos) {
+	if(!skipWhite(expr, pos)) return 0;
+
+	Node<T>* l = app(expr, pos);
+
+	if(!skipWhite(expr, pos)) return l;
+
+	while(true) {
+		bool mul = expr[pos] == '*';
+		bool div = expr[pos] == '/';
+
+		if(mul || div) {
+			pos++;
+		}
+
+		Node<T>* r = app(expr, pos);
+
+		if(r == 0) {
+			if(mul || div) {
+				qDebug("WARNING: */ found but no argument");
+			}
+
+			return l;
+		}
+
+		if(!div) {
+			l = new MulNode<T>(l, r);
+		} else {
+			l = new DivNode<T>(l, r);
+		}
+
+		if(!skipWhite(expr, pos)) return l;
+	}
+
+	return l;
+}
+
+template<class T>
+Node<T>* Tree<T>::app(const QString& expr, int& pos) {
+	if(!skipWhite(expr, pos)) return 0;
+
+	// TODO: maintain list of valid applications
+	// BUG!!! Start at different positiion!
+	if(expr.startsWith("sin")) {
+		pos += 3;
+
+		Node<T>* n = app(expr, pos);
+
+		if(n == 0) {
+			qDebug("WARNING: Application without argument");
+			return 0;
+		} else {
+			return new SinNode<T>(n);
+		}
+	} else {
+		Node<T>* n = power(expr, pos);
+		return n;
 	}
 }
 
-Node* Parser::product(QString expr, int& pos) {}
-Node* Parser::app(QString expr, int& pos) {}
-Node* Parser::power(QString expr, int& pos) {}
-Node* Parser::term(QString expr, int& pos) {}
-Node* Parser::var(QString expr, int& pos) {}
-Node* Parser::num(QString expr, int& pos) {}
+template<class T>
+Node<T>* Tree<T>::power(const QString& expr, int& pos) {
+	// Right-associative
 
+	Node<T>* l = term(expr, pos);
+
+	if(!skipWhite(expr, pos)) return l;
+
+	if(expr[pos] == '^') {
+		pos++;
+		Node<T>* r = power(expr, pos);
+
+		if(r != 0) {
+			return new PowNode<T>(l, r);
+		} else {
+			qDebug("WARNING: ^ found but no argument.");
+		}
+	}
+
+	return l;
+}
+
+template<class T>
+Node<T>* Tree<T>::term(const QString& expr, int& pos) {
+	if(!skipWhite(expr, pos)) return 0;
+
+	if(expr[pos] == '(') {
+		pos++;
+		Node<T>* l = sum(expr, pos);
+
+		if(!skipWhite(expr, pos)) {
+			qDebug("WARNING: Missing )");
+			return l;
+		}
+
+		if(expr[pos] == ')') {
+			pos++;
+		} else {
+			qDebug("WARNING: Missing )");
+		}
+
+		return l;
+	} else {
+		Node<T>* l = num(expr, pos);
+
+		if(l != 0) return l;
+
+		l = var(expr, pos);
+		return l;
+	}
+}
+
+template<class T>
+Node<T>* Tree<T>::var(const QString& expr, int& pos) {
+	// TODO so far only one char
+	// TODO Consider constants like e, pi and i
+	if(expr[pos].isLetter()) {
+		QString name = expr[pos];
+		pos++;
+
+		return new VarNode<T>(name);
+	}
+
+	return 0;
+}
+
+template<class T>
+Node<T>* Tree<T>::num(const QString& expr, int& pos) {
+	// TODO so far only one digit
+	if(expr[pos].isDigit()) {
+		int i = expr.mid(pos, 1).toInt();
+		pos++;
+
+		return new NumNode<T>(i);
+	}
+
+	return  0;
+}
 
 template class Interpreter<double>;
 template class Interpreter<long double>;
+
+template class Tree<int>;

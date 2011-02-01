@@ -324,7 +324,7 @@ void Settings::initSpecs() {
 			magnets.push_back(m);
 		}
 
-		Specification* spec = new Pendulum<double>(
+		Pendulum<double>* spec = new Pendulum<double>(
 				Transformation<double>(10, 0, 0, 10, -5, -5),
 				magnets,
 				1000, // max steps
@@ -598,6 +598,48 @@ void Settings::initSpecs() {
 
 		specifications_["Buddhabrot (Magnet 1)"] = spec;
 	}
+
+
+	{
+		QList< Magnet<double> > magnets;
+
+		int max = 4;
+
+		double hues[max];
+
+		hues[0] = 23. / 24.;
+		hues[1] = 1. / 6.;
+		hues[2] = 1. / 3.;
+		hues[3] = 15. / 24.;
+
+		for(int i = 0; i < max; i++) {
+			ColorPalette p;
+
+			QColor color = QColor::fromHsvF(hues[i], 1, 1);
+
+			p.addColor(0, 1, 1, 1);
+			p.addColor(0.5, color.redF(), color.greenF(), color.blueF());
+			p.addColor(1, 0, 0, 0);
+
+			Magnet<double> m(2 * sin(i * 2 * M_PI / max), 2 * cos(i * 2 * M_PI / max), 0.0667, p);
+
+			magnets.push_back(m);
+		}
+
+		Pendulum<double>* pend = new Pendulum<double>(
+				Transformation<double>(10, 0, 0, 10, -5, -5),
+				magnets,
+				1000, // max steps
+				0.01, // step size
+				0.024, // friction
+				0.2,   // height
+				0.016 // gravity
+				);
+		Specification* spec = new OrbitPlotting<double>(Transformation<double>(10, 0, 0, 10, -5, -5), *pend);
+
+		specifications_["Buddhabrot (Pendulum 4)"] = spec;
+	}
+
 }
 
 Settings* Settings::settings() {

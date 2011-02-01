@@ -17,7 +17,7 @@ ImageControlWidget::ImageControlWidget(QWidget* parent, const Specification& spe
 {
 	init();
 	// TODO Priority
-	generator_->start();
+	generator_->start(QThread::LowPriority);
 }
 
 ImageControlWidget::~ImageControlWidget() {
