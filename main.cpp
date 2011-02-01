@@ -1,7 +1,7 @@
 #include <QtGui/QApplication>
 #include "ui/mainwindow.h"
 
-#include "math/spline.h"
+#include "math/interpreter.h"
 
 int main(int argc, char *argv[])
 {

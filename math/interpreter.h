@@ -6,6 +6,7 @@
 #include <QMap>
 #include <QList>
 #include <QString>
+#include <QDebug>
 
 // Instruction Format
 // instruction [31...26] destination [25..18] source2/i [17..9] source [8..0]
@@ -425,24 +426,153 @@ public:
 	void interpret(T& nr, T& ni, T cr, T ci, T zr, T zi, int n, T* xs, T* ys) const;
 };
 
-// New...
-
+// Syntax-Tree-Classes
+template<class T>
 class Node {
 public:
-	// Stream
+	//Node<T>* differential(QString varName);
+	//bool isNum();
+	virtual QString toString() = 0;
 };
 
-class Parser {
+template<class T>
+class UnNode : public Node<T> {
+protected:
+	Node<T>* n_;
+	UnNode(Node<T>* n) : n_(n) {}
 public:
-private:
-	static void skipWhite(QString expr, int& pos);
-	static Node* sum(QString expr, int& pos);
-	static Node* product(QString expr, int& pos);
-	static Node* app(QString expr, int& pos);
-	static Node* power(QString expr, int& pos);
-	static Node* term(QString expr, int& pos);
-	static Node* var(QString expr, int& pos);
-	static Node* num(QString expr, int& pos);
+	virtual ~UnNode() { delete n_; }
 };
+
+template<class T>
+class BiNode : public Node<T> {
+protected:
+	Node<T>* l_;
+	Node<T>* r_;
+	BiNode(Node<T>* l, Node<T>* r) : l_(l), r_(r) {}
+public:
+	virtual ~BiNode() { delete l_; delete r_; }
+};
+
+template<class T>
+class AddNode : public BiNode<T> {
+public:
+	AddNode(Node<T>* l, Node<T>* r) : BiNode<T>(l, r) {}
+	virtual ~AddNode() {}
+
+	QString toString() {
+		return "(" + this->l_->toString() + " + " + this->r_->toString() + ")";
+	}
+};
+
+template<class T>
+class SubNode : public BiNode<T> {
+public:
+	SubNode(Node<T>* l, Node<T>* r) : BiNode<T>(l, r) {}
+	virtual ~SubNode() {}
+
+	QString toString() {
+		return this->l_->toString() + " - " + this->r_->toString() + ")";
+	}
+};
+
+template<class T>
+class MulNode : public BiNode<T> {
+public:
+	MulNode(Node<T>* l, Node<T>* r) : BiNode<T>(l, r) {}
+	virtual ~MulNode() {}
+
+	QString toString() {
+		return "(" + this->l_->toString() + " * " + this->r_->toString() + ")";
+	}
+};
+
+template<class T>
+class DivNode : public BiNode<T> {
+public:
+	DivNode(Node<T>* l, Node<T>* r) : BiNode<T>(l, r) {}
+	virtual ~DivNode() {}
+
+	QString toString() {
+		return "(" + this->l_->toString() + " / " + this->r_->toString() + ")";
+	}
+};
+
+template<class T>
+class PowNode : public BiNode<T> {
+public:
+	PowNode(Node<T>* l, Node<T>* r) : BiNode<T>(l, r) {}
+	virtual ~PowNode() {}
+
+	QString toString() {
+		return "(" + this->l_->toString() + " ^ " + this->r_->toString() + ")";
+	}
+};
+
+template<class T>
+class NegNode : public UnNode<T> {
+	Node<T>* n_;
+public:
+	NegNode(Node<T>* n) : UnNode<T>(n) {}
+	virtual ~NegNode() {}
+
+	QString toString() {
+		return "- (" + this->n_->toString() + ")";
+	}
+};
+
+template<class T>
+class SinNode : public UnNode<T> {
+	Node<T>* n_;
+public:
+	SinNode(Node<T>* n) : UnNode<T>(n) {}
+	virtual ~SinNode() {}
+
+	QString toString() {
+		return "sin (" + this->n_->toString() + ")";
+	}
+};
+
+template<class T>
+class VarNode : public Node<T> {
+	QString name_;
+public:
+	VarNode(QString name) : name_(name) {}
+
+	QString toString() {
+		return name_;
+	}
+};
+
+template<class T>
+class NumNode : public Node<T> {
+	T re_;
+	T im_;
+public:
+	NumNode(T re, T im = 0) : re_(re), im_(im) {}
+
+	QString toString() {
+		return QString(" num ");
+	}
+};
+
+template<class T>
+class Tree {
+	Node<T>* root_;
+public:
+	static Tree<T>* parse(const QString& expr);
+
+private:
+	Tree(Node<T>* n);
+	static bool skipWhite(const QString& expr, int& pos);
+	static Node<T>* sum(const QString& expr, int& pos);
+	static Node<T>* product(const QString& expr, int& pos);
+	static Node<T>* app(const QString& expr, int& pos);
+	static Node<T>* power(const QString& expr, int& pos);
+	static Node<T>* term(const QString& expr, int& pos);
+	static Node<T>* var(const QString& expr, int& pos);
+	static Node<T>* num(const QString& expr, int& pos);
+};
+
 
 #endif // INTERPRETER_H

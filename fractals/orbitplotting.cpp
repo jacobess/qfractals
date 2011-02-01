@@ -50,6 +50,7 @@ void OrbitPlottingGenerator<T>::exec(int) {
 		if(env->orbit(x, y, r, g, b)) {
 
 			for(int i = 0; i < env->length(); i++) {
+				// TODO Add 4d-projection involving x and y
 				addDot(env->x(i), env->y(i), r, g, b);
 			}
 		}
