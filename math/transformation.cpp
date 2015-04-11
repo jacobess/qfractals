@@ -31,7 +31,7 @@ T Transformation<T>::toX(const T& x, const T& y) const {
 
 template <class T>
 T Transformation<T>::toY(const T& x, const T& y) const {
-	return c_ * x + d_ * y + f_;
+    return c_ * x + d_ * y + f_;
 }
 
 template <class T>
@@ -41,7 +41,7 @@ T Transformation<T>::fromX(const T& x, const T& y) const {
 
 template <class T>
 T Transformation<T>::fromY(const T& x, const T& y) const {
-	return T(-c_ / det_ * x + a_ / det_ * y + (c_ * e_ - a_ * f_) / det_);
+    return T(-c_ / det_ * x + a_ / det_ * y + (c_ * e_ - a_ * f_) / det_);
 }
 
 template class Transformation<float>;

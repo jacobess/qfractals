@@ -15,10 +15,12 @@ public:
 	const T& det() const;
 
 	T toX(const T& x, const T& y) const;
-	T toY(const T& y, const T& y) const;
+//	T toY(const T& y, const T& y) const;
+    T toY(const T& x, const T& y) const;
 
 	T fromX(const T& x, const T& y) const;
-	T fromY(const T& y, const T& y) const;
+//	T fromY(const T& y, const T& y) const;
+    T fromY(const T& x, const T& y) const;
 };
 
 #endif // TransformationATION_H

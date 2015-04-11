@@ -40,3 +40,4 @@ HEADERS += graphics/colorpalette.h \
     ui/resizedialog.h
 FORMS +=
 CONFIG += debug
+QT += widgets

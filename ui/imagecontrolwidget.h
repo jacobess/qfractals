@@ -1,7 +1,7 @@
 #ifndef IMAGECONTROLWIDGET_H
 #define IMAGECONTROLWIDGET_H
 
-#include <QtGui>
+#include <QtWidgets>
 #include "selectablewidget.h"
 #include "fractals/specification.h"
 
