@@ -7,6 +7,7 @@
 #include <QtConcurrentRun>
 
 // text changes 1
+// text change 2
 
 #define ABS(x)	((x) >= 0 ? (x) : -(x))
 
