@@ -6,6 +6,8 @@
 #include <QtConcurrentRun>
 #include <QtConcurrentRun>
 
+// text changes 1
+
 #define ABS(x)	((x) >= 0 ? (x) : -(x))
 
 ImageControlWidget::ImageControlWidget(QWidget* parent, const Specification& spec) :
